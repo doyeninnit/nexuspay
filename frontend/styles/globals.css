@@ -1,10 +1,16 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
-
+/* 
 body {
   background-color: #000;
   color: #FFF;
+} */
+
+
+body {
+  overscroll-behavior-y: none; /* Prevents bounce effect in some browsers */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling for webkit browsers */
+  background-color: #000;
+  color: #FFF;
 }
-
-
