@@ -1,108 +1,243 @@
-import { config } from "dotenv"
-import { IBundler, Bundler } from '@biconomy/bundler'
-import { ChainId } from "@biconomy/core-types"
-import { BiconomySmartAccount, BiconomySmartAccountConfig, DEFAULT_ENTRYPOINT_ADDRESS } from "@biconomy/account"
-import { Wallet, providers, ethers } from 'ethers';
-import { BiconomyPaymaster } from "@biconomy/paymaster";
-const { ERC20ABI } = require('../abi')
+import express from 'express';
+import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
+import { Wallet, Client } from 'xrpl';
+import User from './models/User';
+import Walllet  from './models/Walllet';
+import crypto from 'crypto';
+import Business from './models/Business'; 
 
-config()
+const app = express();
+const PORT = 3000;
+const MONGO_URI = "mongodb+srv://agatenashons:Nashtech9021@xrpl.vo0wfha.mongodb.net/?retryWrites=true&w=majority";
+
+const ENCRYPTION_KEY = "12345678901234567890123456789012";
+
+mongoose.connect(MONGO_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Failed to connect to MongoDB', err));
+
+app.use(bodyParser.json());
 
 
-const bundler: IBundler = new Bundler({
-    bundlerUrl: 'https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44',     
-    chainId: ChainId.POLYGON_MUMBAI,
-    entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-  })
+app.post('/register', async (req, res) => {
+  const phoneNumber = req.body.phoneNumber;
 
-  const provider = new providers.JsonRpcProvider("https://rpc.ankr.com/polygon_mumbai")
-const wallet = new Wallet(process.env.PRIVATE_KEY || "", provider);
-
-const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
-    signer: wallet,
-    chainId: ChainId.POLYGON_MUMBAI,
-    bundler: bundler
+  if (!phoneNumber) {
+      return res.status(400).send({ message: "Phone number is required!" });
   }
 
-  async function createAccount() {
-    let biconomySmartAccount = new BiconomySmartAccount(biconomySmartAccountConfig)
-    biconomySmartAccount =  await biconomySmartAccount.init()
-    console.log("owner: ", biconomySmartAccount.owner)
-    console.log("address: ", await biconomySmartAccount.getSmartAccountAddress())
-    return biconomySmartAccount;
+  const api = new Client("wss://s.altnet.rippletest.net:51233");
+  await api.connect();
+
+  // Create a funded testnet wallet
+  const fundedWallet = await api.fundWallet();
+  const encryptedSecret = encrypt(fundedWallet.wallet.seed as string);
+
+
+
+  const user = new User({
+    phoneNumber: phoneNumber,
+    walletAddress: fundedWallet.wallet.address
+});
+
+const wallet = new Walllet({
+  phoneNumber: phoneNumber,
+  encryptedSecret: encryptedSecret
+});
+
+
+
+  try {
+    await user.save();
+    await wallet.save();
+    res.send({ message: "Registered successfully!", walletAddress: fundedWallet.wallet.address, amount: fundedWallet.balance});
+} catch (error) {
+    handleDbError(res, error);
+}
+  
+  // Close connection after done
+  api.disconnect();
+});
+
+
+app.post('/sendXRP', async (req, res) => {
+  const senderPhoneNumber = req.body.senderPhoneNumber;
+  const receiverPhoneNumber = req.body.receiverPhoneNumber;
+  const amount = req.body.amount;  // In drops, 1 XRP = 1,000,000 drops
+
+  // Fetch the sender's wallet details
+  const senderWalletDetails = await Walllet.findOne({ phoneNumber: senderPhoneNumber });
+  if (!senderWalletDetails) {
+      return res.status(400).send({ message: "Sender not found!" });
   }
-//   address:  0xc41d51ce2471520bf59fe97e03ca882daedf3e09
-  
+
+  // Fetch the receiver's address from the User model
+  const receiver = await User.findOne({ phoneNumber: receiverPhoneNumber });
+  if (!receiver) {
+      return res.status(400).send({ message: "Receiver not found!" });
+  }
+
+  const decryptedSecret = decrypt(senderWalletDetails.encryptedSecret);
+  const senderWallet = Wallet.fromSeed(decryptedSecret);
+
+  // Send XRP using XRPL library
+  try {
+      const api = new Client("wss://s.altnet.rippletest.net:51233");
+      await api.connect();
+
+      const tx = await api.autofill({
+          "TransactionType": "Payment",
+          "Account": senderWallet.address,
+          "Amount": amount,
+          "Destination": receiver.walletAddress  // Fetching destination from the receiver's User record
+      });
+
+      const signed = senderWallet.sign(tx);
+      const transaction = await api.submitAndWait(signed.tx_blob);
+
+      api.disconnect();
+      res.send({ message: "Transaction successful!", transaction: transaction });
+  } catch (error) {
+      console.error("Error sending XRP:", error);
+      res.status(500).send({ message: "An error occurred while sending XRP." });
+  }
+});
 
 
-  async function createTransaction() {
-    console.log("creating account")
-  
-    const smartAccount = await createAccount();
-  
-    const transaction = {
-      to: '0xA82fb8eF1dcff52FD38a2ce08Fc8A142e1FAA12b',
-      data: '0x',
-      value: ethers.utils.parseEther('0.01'),
+
+app.post('/registerBusiness', async (req, res) => {
+    const ownerPhoneNumber = req.body.ownerPhoneNumber;
+    const businessName = req.body.businessName;
+
+    if (!ownerPhoneNumber || !businessName) {
+        return res.status(400).send({ message: "Owner phone number and business name are required!" });
     }
-  
-    const userOp = await smartAccount.buildUserOp([transaction])
-    userOp.paymasterAndData = "0x"
-  
-    const userOpResponse = await smartAccount.sendUserOp(userOp)
-  
-    const transactionDetail = await userOpResponse.wait()
-  
-    console.log("transaction detail below")
-    console.log(transactionDetail)
-  }
 
-  async function createTokenTransfer( recipientAddress: string, amount: number, tokenAddress: string) {
-    const readProvider = new providers.JsonRpcProvider("https://rpc.ankr.com/polygon_mumbai");
-    const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, readProvider);
-    let decimals = 18;
+    // Check if the user exists and has a normal account
+    const user = await User.findOne({ phoneNumber: ownerPhoneNumber });
+    if (!user) {
+        return res.status(400).send({ message: "User not found!" });
+    }
+
+    // Check if the business name is already registered
+    const existingBusiness = await Business.findOne({ businessName: businessName });
+    if (existingBusiness) {
+        return res.status(400).send({ message: "Business name already registered!" });
+    }
+
+    // Generate a 5 digit till number
+    const tillNumber = Math.floor(10000 + Math.random() * 90000);
+
+    const business = new Business({
+        ownerPhoneNumber: ownerPhoneNumber,
+        businessName: businessName,
+        tillNumber: tillNumber,
+        walletAddress: user.walletAddress
+    });
+
     try {
-        decimals = await tokenContract.decimals();
+        await business.save();
+        res.send({ message: "Business registered successfully!", tillNumber: tillNumber });
     } catch (error) {
-        throw new Error('Invalid token address supplied');
+        console.error("DB Error:", error);
+        res.status(500).send({ message: "An error occurred while registering the business." });
     }
-    const amountGwei = ethers.utils.parseUnits(amount.toString(), decimals);
-    const data = (await tokenContract.populateTransaction.transfer(recipientAddress, amountGwei)).data;
-    return {
-        to: tokenAddress,
-        data,
-        value: 0 // No ether is sent in a standard ERC20 transfer
-    };
-}
+});
 
-async function createTransaction2(isTokenTransfer = false, tokenAddress = "", recipientAddress = "", amount: number) {
-    console.log("creating account");
 
-    const smartAccount = await createAccount();
 
-    let transaction;
-    if (isTokenTransfer) {
-        transaction = await createTokenTransfer(recipientAddress, amount, tokenAddress);
-    } else {
-        transaction = {
-            to: '0xA82fb8eF1dcff52FD38a2ce08Fc8A142e1FAA12b',
-            data: '0x',
-            value: ethers.utils.parseEther('0.01'),
-        };
+app.post('/pay', async (req, res) => {
+    const tillNumber = req.body.tillNumber;
+    const amount = req.body.amount; // In drops, 1 XRP = 1,000,000 drops
+    const senderPhoneNumber = req.body.senderPhoneNumber; // User's phone number
+
+    // Input validation
+    if (!tillNumber || !amount || !senderPhoneNumber) {
+        return res.status(400).send({ message: "Till number, amount, and sender phone number are required!" });
     }
 
-    const userOp = await smartAccount.buildUserOp([transaction]);
-    userOp.paymasterAndData = "0x"; // You might want to integrate paymaster here for ERC20 transactions
+    // Retrieve the business using the provided till number
+    const business = await Business.findOne({ tillNumber: tillNumber });
+    if (!business) {
+        return res.status(404).send({ message: "Business not found!" });
+    }
 
-    const userOpResponse = await smartAccount.sendUserOp(userOp);
-    const transactionDetail = await userOpResponse.wait();
+    // Present the business name to the user for confirmation
+    // (In a real-world scenario, this step would typically involve a separate interaction, but here we're simplifying it for demonstration purposes.)
+    if (!req.body.confirm) { // Check if 'confirm' field is set in the request
+        return res.status(200).send({
+            message: "Please confirm the business name.",
+            businessName: business.businessName
+        });
+    }
 
-    console.log("transaction detail below");
-    console.log(transactionDetail);
+    // Retrieve sender's details
+    const sender = await Walllet.findOne({ phoneNumber: senderPhoneNumber });
+    if (!sender) {
+        return res.status(404).send({ message: "Sender not found!" });
+    }
+
+    const decryptedSecret = decrypt(sender.encryptedSecret);
+    const senderWallet = Wallet.fromSeed(decryptedSecret);
+
+    // Send XRP using XRPL library
+    try {
+        const api = new Client("wss://s.altnet.rippletest.net:51233");
+        await api.connect();
+
+        const tx = await api.autofill({
+            "TransactionType": "Payment",
+            "Account": senderWallet.address,
+            "Amount": amount,
+            "Destination": business.walletAddress
+        });
+
+        const signed = senderWallet.sign(tx);
+        const transaction = await api.submitAndWait(signed.tx_blob);
+
+        api.disconnect();
+        res.send({ message: "Transaction successful!", transaction: transaction });
+    } catch (error) {
+        console.error("Error sending XRP:", error);
+        res.status(500).send({ message: "An error occurred while sending XRP." });
+    }
+});
+
+
+// Other routes...
+
+// ... (previous code)
+
+function encrypt(text: string): string {
+  let iv = crypto.randomBytes(16);
+  let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  let encrypted = cipher.update(text);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
 
-  createTransaction2(true, "0xdA5289fCAAF71d52a80A254da614a192b693e977", "0xA82fb8eF1dcff52FD38a2ce08Fc8A142e1FAA12b", 2)
+function decrypt(text: string): string {
+  let textParts = text.split(':');
+  let iv = Buffer.from(textParts.shift()!, 'hex');
+  let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+  let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  let decrypted = decipher.update(encryptedText);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+  return decrypted.toString();
+}
 
+function handleDbError(res: any, error: any) {
+  console.error("DB Error:", error);
+  if (error.code === 11000) {
+      res.status(409).send({ message: "Phone number already registered!" });
+  } else {
+      res.status(500).send({ message: "An error occurred while registering." });
+  }
+}
 
+// ... (rest of the code)
 
-
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});
