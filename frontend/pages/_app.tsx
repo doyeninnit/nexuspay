@@ -30,6 +30,7 @@ import '@/styles/globals.css'
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import LoginSignup from '../components/LoginSignup'; 
+import { RegistrationProvider } from '@/contexts/RegistrationContext';
 
 function MyApp({ Component, pageProps }: AppProps) {
   // const { isAuthenticated } = useAuth();
@@ -47,12 +48,15 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     // <AuthProvider>
+    <RegistrationProvider>
+
       <Layout>
         <div className="pb-16">
           <Component {...pageProps} />
         </div>
       </Layout>
-    // </AuthProvider>
+      </RegistrationProvider>
+
   );
 }
 

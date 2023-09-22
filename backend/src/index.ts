@@ -6,9 +6,16 @@ import User from './models/User';
 import Walllet  from './models/Walllet';
 import crypto from 'crypto';
 import Business from './models/Business'; 
+const cors = require('cors');
 
 const app = express();
-const PORT = 3000;
+app.use(cors({
+    origin: 'http://localhost:3000',  // Allow only this origin
+    methods: ['GET', 'POST'],  // Allow these methods
+    // ... other configurations
+  }));
+  
+const PORT = 8000;
 const MONGO_URI = "mongodb+srv://agatenashons:Nashtech9021@xrpl.vo0wfha.mongodb.net/?retryWrites=true&w=majority";
 
 const ENCRYPTION_KEY = "12345678901234567890123456789012";
