@@ -19,7 +19,8 @@ app.use(cors({
   }));
   
 const PORT = 8000;
-const MONGO_URI = "mongodb+srv://agatenashons:Nashtech9021@xrpl.vo0wfha.mongodb.net/?retryWrites=true&w=majority";
+// const MONGO_URI = "mongodb+srv://agatenashons:Nashtech9021@xrpl.vo0wfha.mongodb.net/?retryWrites=true&w=majority";
+const MONGO_URI = 'mongodb+srv://agatenashons:nashtech9021@afpaylive.lyyoqtu.mongodb.net/?retryWrites=true&w=majority'
 const JWT_SECRET = 'secret';
 const ENCRYPTION_KEY = "12345678901234567890123456789012";
 
