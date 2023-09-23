@@ -105,7 +105,7 @@ return (
           </div>
           <div className="text-center mt-4">
                 <p className="text-sm text-gray-600">
-                    Don't have an account? 
+                    Dont have an account? 
                     <button onClick={toggleView} className="text-blue-500 hover:underline ml-2">Register instead</button>
                 </p>
             </div>
