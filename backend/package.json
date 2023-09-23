@@ -28,6 +28,7 @@
     "@biconomy/core-types": "^3.1.1-alpha.0",
     "@biconomy/paymaster": "^3.1.1-alpha.0",
     "@etherspot/prime-sdk": "^1.2.6",
+    "@vercel/node": "^3.0.6",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
