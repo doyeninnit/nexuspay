@@ -20,7 +20,7 @@ const handleSubmit = async (e: { preventDefault: () => void; }) => {
   
     try {
         console.log("registering...")
-      const response = await fetch('http://localhost:8000/register', {
+      const response = await fetch('https://afpaybackend-nashons.vercel.app/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber, password }),
@@ -40,25 +40,6 @@ const handleSubmit = async (e: { preventDefault: () => void; }) => {
     }
   };
 
-//   return (
-//     <div>
-//       <form onSubmit={handleSubmit}>
-//         <input
-//           value={phoneNumber}
-//           onChange={(e) => setPhoneNumber(e.target.value)}
-//           placeholder="Phone Number"
-//         />
-//         <input
-//           type="password"
-//           value={password}
-//           onChange={(e) => setPassword(e.target.value)}
-//           placeholder="Password"
-//         />
-//         <button type="submit">Register</button>
-//       </form>
-//     </div>
-//   );
-// };
 
 return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">

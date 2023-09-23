@@ -20,7 +20,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     try {
         console.log("logging...");
         
-        const response = await fetch('http://localhost:8000/login', {
+        const response = await fetch('https://afpaybackend-nashons.vercel.app/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phoneNumber, password }),
@@ -47,25 +47,6 @@ const handleSubmit = async (e: React.FormEvent) => {
         console.error('Login Error:');
     }
 };
-
-//   return (
-//     <div>
-//       <form onSubmit={handleSubmit}>
-//         <input
-//           value={phoneNumber}
-//           onChange={(e) => setPhoneNumber(e.target.value)}
-//           placeholder="Phone Number"
-//         />
-//         <input
-//           type="password"
-//           value={password}
-//           onChange={(e) => setPassword(e.target.value)}
-//           placeholder="Password"
-//         />
-//         <button type="submit">Login</button>
-//       </form>
-//     </div>
-//   );
 
 return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
