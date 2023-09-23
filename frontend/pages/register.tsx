@@ -2,7 +2,7 @@
 // import { useRouter } from 'next/router';
 // import { useAuth } from '@/contexts/AuthContext';
 
-// const LoginPage = () => {
+// const SignupPage = () => {
 //   const [username, setUsername] = useState('');
 //   const [password, setPassword] = useState('');
 //   const { login } = useAuth();
@@ -11,19 +11,19 @@
 //   const handleSubmit = async (e: React.FormEvent) => {
 //     e.preventDefault();
 
-//     // Send a request to your backend to validate the user
-//     const response = await fetch('/api/login', {
+//     // Send a request to your backend to register the user
+//     const response = await fetch('/api/signup', {
 //       method: 'POST',
 //       headers: { 'Content-Type': 'application/json' },
 //       body: JSON.stringify({ username, password }),
 //     });
 
-//   //   if (response.status === 200) {
-//   //     login();
-//   //     router.push('/dashboard'); // or wherever you want to redirect after a successful login
-//   //   } else {
-//   //     // Handle the error. Maybe show a message to the user.
-//   //   }
+// //     if (response.status === 200) {
+// //       login();
+// //       router.push('/dashboard'); // or wherever you want to redirect after successful registration
+// //     } else {
+// //       // Handle the error. Maybe show a message to the user.
+// //     }
 //   };
 
 //   return (
@@ -40,25 +40,24 @@
 //           onChange={e => setPassword(e.target.value)}
 //           placeholder="Password"
 //         />
-//         <button type="submit">Login</button>
+//         <button type="submit">Sign Up</button>
 //       </form>
 //     </div>
 //   );
 // };
 
-// export default LoginPage;
+// export default SignupPage;
+// pages/register.tsx
+import Register from '../components/Register';
 
-// pages/login.tsx
-import Login from '../components/Login';
-
-const LoginPage: React.FC = () => {
+const RegisterPage: React.FC = () => {
   return (
     <div className="bg-black min-h-screen text-white">
-      <Login toggleView={function (): void {
-        throw new Error('Function not implemented.');
-      } } />
+      <Register toggleView={function (): void {
+              throw new Error('Function not implemented.');
+          } } />
     </div>
   );
 }
 
-export default LoginPage;
+export default RegisterPage;

@@ -22,9 +22,15 @@
 
 import mongoose from 'mongoose';
 
+// const userSchema = new mongoose.Schema({
+//     phoneNumber: { type: String, required: true, unique: true },
+//     walletAddress: { type: String, required: true }
+// });
+
 const userSchema = new mongoose.Schema({
     phoneNumber: { type: String, required: true, unique: true },
-    walletAddress: { type: String, required: true }
+    walletAddress: { type: String, required: true },
+    password: { type: String, required: true }  // Add password field
 });
 const User = mongoose.model('User', userSchema);
 

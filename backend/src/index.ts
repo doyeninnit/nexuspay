@@ -6,6 +6,9 @@ import User from './models/User';
 import Walllet  from './models/Walllet';
 import crypto from 'crypto';
 import Business from './models/Business'; 
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from 'express';
 const cors = require('cors');
 
 const app = express();
@@ -17,7 +20,7 @@ app.use(cors({
   
 const PORT = 8000;
 const MONGO_URI = "mongodb+srv://agatenashons:Nashtech9021@xrpl.vo0wfha.mongodb.net/?retryWrites=true&w=majority";
-
+const JWT_SECRET = 'secret';
 const ENCRYPTION_KEY = "12345678901234567890123456789012";
 
 mongoose.connect(MONGO_URI)
@@ -29,6 +32,7 @@ app.use(bodyParser.json());
 
 app.post('/register', async (req, res) => {
   const phoneNumber = req.body.phoneNumber;
+  const passwordHash = await bcrypt.hash(req.body.password, 10);
 
   if (!phoneNumber) {
       return res.status(400).send({ message: "Phone number is required!" });
@@ -45,7 +49,8 @@ app.post('/register', async (req, res) => {
 
   const user = new User({
     phoneNumber: phoneNumber,
-    walletAddress: fundedWallet.wallet.address
+    walletAddress: fundedWallet.wallet.address,
+    password: passwordHash  // Store hashed password
 });
 
 const wallet = new Walllet({
@@ -67,8 +72,20 @@ const wallet = new Walllet({
   api.disconnect();
 });
 
+app.post('/login', async (req, res) => {
+    const { phoneNumber, password } = req.body;
 
-app.post('/sendXRP', async (req, res) => {
+    const user = await User.findOne({ phoneNumber });
+    if (!user) return res.status(400).send({ message: "User not found!" });
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) return res.status(400).send({ message: "Invalid password!" });
+
+    const token = jwt.sign({ phoneNumber: user.phoneNumber }, JWT_SECRET, { expiresIn: '1h' });
+    res.send({ token });
+});
+
+app.post('/sendXRP',authenticateToken, async (req, res) => {
   const senderPhoneNumber = req.body.senderPhoneNumber;
   const receiverPhoneNumber = req.body.receiverPhoneNumber;
   const amount = req.body.amount;  // In drops, 1 XRP = 1,000,000 drops
@@ -113,7 +130,7 @@ app.post('/sendXRP', async (req, res) => {
 
 
 
-app.post('/registerBusiness', async (req, res) => {
+app.post('/registerBusiness',authenticateToken, async (req, res) => {
     const ownerPhoneNumber = req.body.ownerPhoneNumber;
     const businessName = req.body.businessName;
 
@@ -243,7 +260,20 @@ function handleDbError(res: any, error: any) {
   }
 }
 
-// ... (rest of the code)
+//middleware
+function authenticateToken(req: Request, res: Response, next: NextFunction) {
+    const token = req.headers['authorization'];
+    if (!token) return res.status(401).send({ message: "No token provided!" });
+
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) return res.status(403).send({ message: "Invalid token!" });
+
+        // req.user = decoded;
+        (req as any).user = decoded;
+
+        next();
+    });
+}
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

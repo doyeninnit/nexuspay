@@ -30,32 +30,21 @@ import '@/styles/globals.css'
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import LoginSignup from '../components/LoginSignup'; 
-import { RegistrationProvider } from '@/contexts/RegistrationContext';
+// import { RegistrationProvider } from '@/contexts/RegistrationContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 function MyApp({ Component, pageProps }: AppProps) {
   // const { isAuthenticated } = useAuth();
   const router = useRouter();
 
-  // useEffect(() => {
-  //   if (!isAuthenticated) {
-  //     router.push('/login');
-  //   }
-  // }, [isAuthenticated]);
-
-  // if (!isAuthenticated) {
-  //   return <LoginSignup />;
-  // }
-
   return (
-    // <AuthProvider>
-    <RegistrationProvider>
-
+    <AuthProvider>
       <Layout>
         <div className="pb-16">
           <Component {...pageProps} />
         </div>
       </Layout>
-      </RegistrationProvider>
+      </AuthProvider>
 
   );
 }

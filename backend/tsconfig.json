@@ -9,6 +9,8 @@
     "strict": true,         
     "noImplicitAny": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "typeRoots": ["src/types", "./node_modules/@types"],
+    "types": ["node", "express"]  // Add the names of ne
   }
 }

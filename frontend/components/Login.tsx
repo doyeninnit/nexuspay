@@ -1,44 +1,52 @@
-// components/Register.tsx
+// components/Login.tsx
 
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/router';
-
-type RegisterProps = {
+type LoginProps = {
     toggleView: () => void;
   };
   
-  const Register: React.FC<RegisterProps> = ({ toggleView }) => {
+  const Login: React.FC<LoginProps> = ({ toggleView }) => {
     const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
-  const router = useRouter();  
+  const router = useRouter(); 
 
 
-const handleSubmit = async (e: { preventDefault: () => void; }) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
     try {
-        console.log("registering...")
-      const response = await fetch('http://localhost:8000/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber, password }),
-      });
-  
-      const data = await response.json();
-      console.log(data.walletAddress)
-         if (data.walletAddress) {
-        if (login) {
-          login(data);
-        } else {
-          console.error("Login function is not defined");
+        console.log("logging...");
+        
+        const response = await fetch('http://localhost:8000/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phoneNumber, password }),
+        });
+        
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.message);
         }
-      }
+
+        const data = await response.json();
+        
+        if (login) {
+            if (data.token) {
+                login({ token: data.token, phoneNumber });
+            } else {
+                console.error("No token received from the server.");
+            }
+        } else {
+            console.error("Login function is not defined in the context.");
+        }
+        
     } catch (err) {
-      console.error('Registration Error:', err);
+        console.error('Login Error:');
     }
-  };
+};
 
 //   return (
 //     <div>
@@ -54,16 +62,15 @@ const handleSubmit = async (e: { preventDefault: () => void; }) => {
 //           onChange={(e) => setPassword(e.target.value)}
 //           placeholder="Password"
 //         />
-//         <button type="submit">Register</button>
+//         <button type="submit">Login</button>
 //       </form>
 //     </div>
 //   );
-// };
 
 return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md p-8 m-4 bg-white rounded shadow-md">
-        <h1 className="mb-4 text-2xl text-center font-bold">Register</h1>
+        <h1 className="mb-4 text-2xl text-center font-bold">Login</h1>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block mb-2 text-sm font-bold text-gray-700" htmlFor="phoneNumber">
@@ -92,15 +99,14 @@ return (
             />
           </div>
           <div className="mb-6">
-            <button className="w-full px-4 py-2 font-bold text-white bg-green-500 rounded-full hover:bg-green-700 focus:outline-none focus:bg-green-700" type="submit">
-              Register
+            <button className="w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:bg-blue-700" type="submit">
+              Login
             </button>
           </div>
-
           <div className="text-center mt-4">
                 <p className="text-sm text-gray-600">
-                    Already have an account? 
-                    <button onClick={toggleView} className="text-blue-500 hover:underline ml-2">Login instead</button>
+                    Don't have an account? 
+                    <button onClick={toggleView} className="text-blue-500 hover:underline ml-2">Register instead</button>
                 </p>
             </div>
 
@@ -109,4 +115,5 @@ return (
     </div>
   );
 };
-export default Register;
+
+export default Login;
