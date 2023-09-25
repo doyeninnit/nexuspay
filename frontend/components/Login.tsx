@@ -21,6 +21,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         console.log("logging...");
         
         const response = await fetch('https://afpaybackend-nashons.vercel.app/login', {
+          // const response = await fetch('http://localhost:8000/login', {
+
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phoneNumber, password }),
@@ -32,7 +34,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         }
 
         const data = await response.json();
-        
+        console.log(data)
         if (login) {
             if (data.token) {
                 login({ token: data.token, phoneNumber });

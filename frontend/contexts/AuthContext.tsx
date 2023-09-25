@@ -5,6 +5,7 @@ import React, { createContext, useState, useEffect, useContext, ReactNode } from
 interface User {
   phoneNumber: string;
   token?: string;
+  walletAddress?: string; // New field
 }
 
 interface AuthContextProps {
@@ -16,24 +17,33 @@ interface AuthContextProps {
 const AuthContext = createContext<Partial<AuthContextProps>>({});
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // User state
     const [user, setUser] = useState<User | null>(null);
 
-    // On component mount, try to fetch user data from localStorage
     useEffect(() => {
         const storedPhoneNumber = localStorage.getItem('userPhone');
+        const storedWalletAddress = localStorage.getItem('userWalletAddress'); // Fetch walletAddress from localStorage
+
         if (storedPhoneNumber) {
-            setUser({ phoneNumber: storedPhoneNumber });
+            setUser({ 
+              phoneNumber: storedPhoneNumber,
+              walletAddress: storedWalletAddress || undefined // Set walletAddress if exists
+            });
         }
-    }, []); // This effect runs only once after the component mounts, ensuring safe access to localStorage
+    }, []);
 
     const login = (data: User) => {
         setUser(data);
+
         if (data.phoneNumber) {
             localStorage.setItem('userPhone', data.phoneNumber);
         }
+
         if (data.token) {
             localStorage.setItem('userToken', data.token);
+        }
+
+        if (data.walletAddress) { // Save walletAddress to localStorage if exists
+            localStorage.setItem('userWalletAddress', data.walletAddress);
         }
     };
 
@@ -41,6 +51,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(null);
         localStorage.removeItem('userPhone');
         localStorage.removeItem('userToken');
+        localStorage.removeItem('userWalletAddress'); // Clear walletAddress from localStorage
     };
 
     return (

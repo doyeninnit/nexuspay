@@ -21,13 +21,15 @@ const handleSubmit = async (e: { preventDefault: () => void; }) => {
     try {
         console.log("registering...")
       const response = await fetch('https://afpaybackend-nashons.vercel.app/register', {
+        // const response = await fetch('http://localhost:8000/register', {
+
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phoneNumber, password }),
       });
   
       const data = await response.json();
-      console.log(data.walletAddress)
+      console.log(data)
          if (data.walletAddress) {
         if (login) {
           login(data);

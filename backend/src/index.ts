@@ -3,20 +3,16 @@ import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import { Wallet, Client } from 'xrpl';
 import User from './models/User';
-import Walllet  from './models/Walllet';
+import Walllet from './models/Walllet';
 import crypto from 'crypto';
-import Business from './models/Business'; 
+import Business from './models/Business';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 const cors = require('cors');
 
 const app = express();
-// app.use(cors({
-//     origin: 'http://localhost:3000',  // Allow only this origin
-//     methods: ['GET', 'POST'],  // Allow these methods
-//     // ... other configurations
-//   }));
+
 
 const allowedOrigins = ['http://localhost:3000', 'https://nexuspay.vercel.app'];
 
@@ -33,7 +29,7 @@ app.use(cors({
     // ... other configurations
 }));
 
-  
+
 const PORT = 8000;
 // const MONGO_URI = "mongodb+srv://agatenashons:Nashtech9021@xrpl.vo0wfha.mongodb.net/?retryWrites=true&w=majority";
 const MONGO_URI = 'mongodb+srv://agatenashons:nashtech9021@afpaylive.lyyoqtu.mongodb.net/?retryWrites=true&w=majority'
@@ -48,46 +44,62 @@ app.use(bodyParser.json());
 
 
 app.post('/register', async (req, res) => {
-  const phoneNumber = req.body.phoneNumber;
-  const passwordHash = await bcrypt.hash(req.body.password, 10);
+    const phoneNumber = req.body.phoneNumber;
+    const passwordHash = await bcrypt.hash(req.body.password, 10);
 
-  if (!phoneNumber) {
-      return res.status(400).send({ message: "Phone number is required!" });
-  }
+    if (!phoneNumber) {
+        return res.status(400).send({ message: "Phone number is required!" });
+    }
 
-  const api = new Client("wss://s.altnet.rippletest.net:51233");
-  await api.connect();
+    const api = new Client("wss://s.altnet.rippletest.net:51233");
+    await api.connect();
 
-  // Create a funded testnet wallet
-  const fundedWallet = await api.fundWallet();
-  const encryptedSecret = encrypt(fundedWallet.wallet.seed as string);
+    // Create a funded testnet wallet
+    const fundedWallet = await api.fundWallet();
+    const encryptedSecret = encrypt(fundedWallet.wallet.seed as string);
 
 
 
-  const user = new User({
-    phoneNumber: phoneNumber,
-    walletAddress: fundedWallet.wallet.address,
-    password: passwordHash  // Store hashed password
+    const user = new User({
+        phoneNumber: phoneNumber,
+        walletAddress: fundedWallet.wallet.address,
+        password: passwordHash  // Store hashed password
+    });
+
+    const wallet = new Walllet({
+        phoneNumber: phoneNumber,
+        encryptedSecret: encryptedSecret
+    });
+
+
+
+    try {
+        await user.save();
+        await wallet.save();
+        const number = user.phoneNumber
+        res.send({ message: "Registered successfully!", walletAddress: fundedWallet.wallet.address, amount: fundedWallet.balance, phone: number });
+    } catch (error) {
+        handleDbError(res, error);
+    }
+
+    // Close connection after done
+    api.disconnect();
 });
 
-const wallet = new Walllet({
-  phoneNumber: phoneNumber,
-  encryptedSecret: encryptedSecret
-});
+// app.post('/login', async (req, res) => {
+//     const { phoneNumber, password } = req.body;
 
+//     const user = await User.findOne({ phoneNumber });
+//     if (!user) return res.status(400).send({ message: "User not found!" });
 
+//     const isPasswordValid = await bcrypt.compare(password, user.password);
+//     if (!isPasswordValid) return res.status(400).send({ message: "Invalid password!" });
+//     const number = user.phoneNumber
 
-  try {
-    await user.save();
-    await wallet.save();
-    res.send({ message: "Registered successfully!", walletAddress: fundedWallet.wallet.address, amount: fundedWallet.balance});
-} catch (error) {
-    handleDbError(res, error);
-}
-  
-  // Close connection after done
-  api.disconnect();
-});
+//     const token = jwt.sign({ phoneNumber: user.phoneNumber }, JWT_SECRET, { expiresIn: '1h' });
+//     res.send({ token, number });
+// });
+
 
 app.post('/login', async (req, res) => {
     const { phoneNumber, password } = req.body;
@@ -97,57 +109,67 @@ app.post('/login', async (req, res) => {
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return res.status(400).send({ message: "Invalid password!" });
+    const number = user.phoneNumber
+
+    const walletDetails = await Walllet.findOne({ phoneNumber: user.phoneNumber });
+    if (!walletDetails) return res.status(400).send({ message: "Wallet not found for user!" });
 
     const token = jwt.sign({ phoneNumber: user.phoneNumber }, JWT_SECRET, { expiresIn: '1h' });
-    res.send({ token });
+
+    // Return additional wallet details like address. Exclude sensitive data.
+    res.send({
+        token,
+        number,
+        walletAddress: user.walletAddress,        // any other non-sensitive wallet details you want
+    });
 });
 
-app.post('/sendXRP',authenticateToken, async (req, res) => {
-  const senderPhoneNumber = req.body.senderPhoneNumber;
-  const receiverPhoneNumber = req.body.receiverPhoneNumber;
-  const amount = req.body.amount;  // In drops, 1 XRP = 1,000,000 drops
+app.post('/sendXRP', async (req, res) => {
+    const senderPhoneNumber = req.body.senderPhoneNumber;
+    const receiverPhoneNumber = req.body.receiverPhoneNumber;
+    const amount = req.body.amount;  // In drops, 1 XRP = 1,000,000 drops
 
-  // Fetch the sender's wallet details
-  const senderWalletDetails = await Walllet.findOne({ phoneNumber: senderPhoneNumber });
-  if (!senderWalletDetails) {
-      return res.status(400).send({ message: "Sender not found!" });
-  }
+    // Fetch the sender's wallet details
+    const senderWalletDetails = await Walllet.findOne({ phoneNumber: senderPhoneNumber });
+    if (!senderWalletDetails) {
+        return res.status(400).send({ message: "Sender not found!" });
+    }
 
-  // Fetch the receiver's address from the User model
-  const receiver = await User.findOne({ phoneNumber: receiverPhoneNumber });
-  if (!receiver) {
-      return res.status(400).send({ message: "Receiver not found!" });
-  }
+    // Fetch the receiver's address from the User model
+    const receiver = await User.findOne({ phoneNumber: receiverPhoneNumber });
+    if (!receiver) {
+        return res.status(400).send({ message: "Receiver not found!" });
+    }
 
-  const decryptedSecret = decrypt(senderWalletDetails.encryptedSecret);
-  const senderWallet = Wallet.fromSeed(decryptedSecret);
+    const decryptedSecret = decrypt(senderWalletDetails.encryptedSecret);
+    const senderWallet = Wallet.fromSeed(decryptedSecret);
 
-  // Send XRP using XRPL library
-  try {
-      const api = new Client("wss://s.altnet.rippletest.net:51233");
-      await api.connect();
+    // Send XRP using XRPL library
+    try {
+        const api = new Client("wss://s.altnet.rippletest.net:51233");
+        await api.connect();
 
-      const tx = await api.autofill({
-          "TransactionType": "Payment",
-          "Account": senderWallet.address,
-          "Amount": amount,
-          "Destination": receiver.walletAddress  // Fetching destination from the receiver's User record
-      });
+        const tx = await api.autofill({
+            "TransactionType": "Payment",
+            "Account": senderWallet.address,
+            "Amount": amount,
+            "Destination": receiver.walletAddress  // Fetching destination from the receiver's User record
+        });
 
-      const signed = senderWallet.sign(tx);
-      const transaction = await api.submitAndWait(signed.tx_blob);
+        const signed = senderWallet.sign(tx);
+        const transaction = await api.submitAndWait(signed.tx_blob);
 
-      api.disconnect();
-      res.send({ message: "Transaction successful!", transaction: transaction });
-  } catch (error) {
-      console.error("Error sending XRP:", error);
-      res.status(500).send({ message: "An error occurred while sending XRP." });
-  }
+        api.disconnect();
+        res.send({ message: "Transaction successful!", transaction: transaction });
+    } catch (error) {
+        console.error("Error sending XRP:", error);
+        res.status(500).send({ message: "An error occurred while sending XRP." });
+    }
 });
 
 
 
-app.post('/registerBusiness',authenticateToken, async (req, res) => {
+app.post('/registerBusiness', async (req, res) => {
     const ownerPhoneNumber = req.body.ownerPhoneNumber;
     const businessName = req.body.businessName;
 
@@ -249,32 +271,47 @@ app.post('/pay', async (req, res) => {
 // Other routes...
 
 // ... (previous code)
+// async function getWalletBalance(walletAddress: string): Promise<string> {
+//     const api = new Client("wss://s.altnet.rippletest.net:51233");
+//     await api.connect();
+
+//     let balance = '0';
+//     try {
+//         const accountInfo = await api.getAccountInfo(walletAddress);
+//         balance = accountInfo.xrpBalance;
+//     } catch (error) {
+//         console.error("Error fetching wallet balance:", error);
+//     }
+
+//     await api.disconnect();
+//     return balance;
+// }
 
 function encrypt(text: string): string {
-  let iv = crypto.randomBytes(16);
-  let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
-  let encrypted = cipher.update(text);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return iv.toString('hex') + ':' + encrypted.toString('hex');
+    let iv = crypto.randomBytes(16);
+    let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+    let encrypted = cipher.update(text);
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    return iv.toString('hex') + ':' + encrypted.toString('hex');
 }
 
 function decrypt(text: string): string {
-  let textParts = text.split(':');
-  let iv = Buffer.from(textParts.shift()!, 'hex');
-  let encryptedText = Buffer.from(textParts.join(':'), 'hex');
-  let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
-  let decrypted = decipher.update(encryptedText);
-  decrypted = Buffer.concat([decrypted, decipher.final()]);
-  return decrypted.toString();
+    let textParts = text.split(':');
+    let iv = Buffer.from(textParts.shift()!, 'hex');
+    let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+    let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
 }
 
 function handleDbError(res: any, error: any) {
-  console.error("DB Error:", error);
-  if (error.code === 11000) {
-      res.status(409).send({ message: "Phone number already registered!" });
-  } else {
-      res.status(500).send({ message: "An error occurred while registering." });
-  }
+    console.error("DB Error:", error);
+    if (error.code === 11000) {
+        res.status(409).send({ message: "Phone number already registered!" });
+    } else {
+        res.status(500).send({ message: "An error occurred while registering." });
+    }
 }
 
 //middleware
