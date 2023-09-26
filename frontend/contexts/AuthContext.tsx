@@ -45,6 +45,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (data.walletAddress) { // Save walletAddress to localStorage if exists
             localStorage.setItem('userWalletAddress', data.walletAddress);
         }
+
     };
 
     const logout = () => {

@@ -304,6 +304,36 @@ app.get('/account_info/:account', async (req, res) => {
 });
 
 
+app.get('/account_tx/:account', async (req, res) => {
+    const { account } = req.params;
+    
+    try {
+
+        const api = new Client("wss://s.altnet.rippletest.net:51233");
+        await api.connect();
+        const accountTransactions = await api.request({
+            command: 'account_tx',
+            account: account,
+            ledger_index_min: -1, // You can adjust this as needed
+            ledger_index_max: -1, // You can adjust this as needed
+            binary: false,        // Set this to true if you want results in binary format
+            limit: 10,            // Number of transactions to retrieve, adjust as needed
+            forward: false        // Set this to true to get values indexed with the oldest ledger first
+        });
+
+        res.status(200).json({
+            status: 'success',
+            data: accountTransactions
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: error || 'Something went wrong'
+        });
+    }
+});
+
 // Other routes...
 
 // ... (previous code)
