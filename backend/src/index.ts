@@ -267,6 +267,42 @@ app.post('/pay', async (req, res) => {
     }
 });
 
+app.get('/account_info/:account', async (req, res) => {
+    const { account } = req.params;
+
+    // if (!api.isConnected()) {
+    //     await api.connect();
+    // }
+
+    try {
+        const api = new Client("wss://s.altnet.rippletest.net:51233");
+        await api.connect();
+
+        const accountInfo = await api.request({
+            command: 'account_info',
+            account: account,
+            ledger_index: 'current',
+            queue: true
+        });
+
+        let balance = accountInfo.result.account_data.Balance;
+
+
+        res.status(200).json({
+            status: 'success',
+            // data: accountInfo,
+            bal: balance
+        });
+        api.disconnect();
+
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: error || 'Something went wrong'
+        });
+    }
+});
+
 
 // Other routes...
 

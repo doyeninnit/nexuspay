@@ -62,7 +62,6 @@ import Layout from '../components/Layout';
 
 const Home = () => {
     return (
-        <Layout>
             <div className="flex flex-col h-screen">
                 <div className="flex-1 overflow-y-auto">
                     <CryptoBalance />
@@ -70,7 +69,6 @@ const Home = () => {
                     <PrimaryActions />
                 </div>
             </div>
-        </Layout>
     );
 }
 
