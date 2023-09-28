@@ -20,8 +20,8 @@ const handleSubmit = async (e: React.FormEvent) => {
     try {
         console.log("logging...");
         
-        // const response = await fetch('https://afpaybackend-nashons.vercel.app/login', {
-          const response = await fetch('http://localhost:8000/login', {
+        const response = await fetch('https://afpaybackend-bokyjcxb7-nashons.vercel.app/login', {
+          // const response = await fetch('http://localhost:8000/login', {
 
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

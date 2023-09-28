@@ -66,7 +66,7 @@ const CryptoBalance = () => {
         // Function to fetch balance from API
         const fetchBalance = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/account_info/${walletAddress}`);
+                const response = await fetch(`https://afpaybackend-bokyjcxb7-nashons.vercel.app/account_info/${walletAddress}`);
                 const data = await response.json();
 
                 if (data.status === 'success' && data.bal) {
