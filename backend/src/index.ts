@@ -14,18 +14,24 @@ const cors = require('cors');
 const app = express();
 
 
-const allowedOrigins = ['http://localhost:3000', 'https://nexuspay.vercel.app'];
+// const allowedOrigins = ['https://nexuspay-hog4i9ekc-nashons.vercel.app','http://localhost:3000', 'https://nexuspay.vercel.app'];
+
+// app.use(cors({
+//     origin: function (origin: string, callback: (arg0: Error | null, arg1: boolean) => any) {
+//         if (!origin) return callback(null, true);
+//         if (allowedOrigins.indexOf(origin) === -1) {
+//             var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+//             return callback(new Error(msg), false);
+//         }
+//         return callback(null, true);
+//     },
+//     methods: ['GET', 'POST'],  // Allow these methods
+//     // ... other configurations
+// }));
 
 app.use(cors({
-    origin: function (origin: string, callback: (arg0: Error | null, arg1: boolean) => any) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            return callback(new Error(msg), false);
-        }
-        return callback(null, true);
-    },
-    methods: ['GET', 'POST'],  // Allow these methods
+    origin: '*',
+    methods: ['GET', 'POST']
     // ... other configurations
 }));
 
