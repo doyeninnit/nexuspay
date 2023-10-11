@@ -340,6 +340,8 @@ app.get('/account_tx/:account', async (req, res) => {
     }
 });
 
+
+
 // Other routes...
 
 // ... (previous code)
@@ -358,6 +360,8 @@ app.get('/account_tx/:account', async (req, res) => {
 //     await api.disconnect();
 //     return balance;
 // }
+
+
 
 function encrypt(text: string): string {
     let iv = crypto.randomBytes(16);
