@@ -1,20 +1,37 @@
+
+
 // components/Layout.tsx
 import Header from './Header';
 import NavBar from './NavBar';
-import LoginSignup from './LoginSignup';
-// import { useAuth } from '@/pages/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
+import Register from '../components/Register';
+import Login from '../components/Login';
+import { useState } from 'react';
 
 type LayoutProps = {
     children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+    const { user } = useAuth();
+    const [showLogin, setShowLogin] = useState(true); 
 
-    // const { isAuthenticated } = useAuth();
+    const handleToggleView = () => {
+        setShowLogin(!showLogin);
+    };
 
-    // if (!isAuthenticated) {
-    //   return <LoginSignup />;
-    // }
+    if (!user) {
+        return (
+            <div className="h-screen flex justify-center items-center bg-gradient-to-r from-blue-500 to-indigo-600">
+                {showLogin ? (
+                    <Login toggleView={handleToggleView} />
+                ) : (
+                    <Register toggleView={handleToggleView} />
+                )}
+            </div>
+        );
+    }
+
     return (
         <div className="bg-black min-h-screen text-white">
             <div className="flex flex-col h-screen">
@@ -24,11 +41,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <NavBar />
                 </div>
             </div>
-            </div>
-            );
-  }
-
-
-  
+        </div>
+    );
+}
 
 export default Layout;
