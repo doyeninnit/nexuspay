@@ -2,7 +2,7 @@
   "name": "node_ts_starter",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.ts",
   "scripts": {
     "dev": "npx nodemon"
   },
