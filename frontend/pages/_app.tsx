@@ -38,13 +38,13 @@ function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
 
   return (
-    <AuthProvider>
+    // <AuthProvider>
       <Layout>
         <div className="pb-16">
           <Component {...pageProps} />
         </div>
       </Layout>
-      </AuthProvider>
+      // </AuthProvider>
 
   );
 }
