@@ -20,17 +20,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         setShowLogin(!showLogin);
     };
 
-    if (!user) {
-        return (
-            <div className="h-screen flex justify-center items-center bg-gradient-to-r from-blue-500 to-indigo-600">
-                {showLogin ? (
-                    <Login toggleView={handleToggleView} />
-                ) : (
-                    <Register toggleView={handleToggleView} />
-                )}
-            </div>
-        );
-    }
+    // if (!user) {
+    //     return (
+    //         <div className="h-screen flex justify-center items-center bg-gradient-to-r from-blue-500 to-indigo-600">
+    //             {showLogin ? (
+    //                 <Login toggleView={handleToggleView} />
+    //             ) : (
+    //                 <Register toggleView={handleToggleView} />
+    //             )}
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="bg-black min-h-screen text-white">

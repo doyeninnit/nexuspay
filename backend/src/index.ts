@@ -14,6 +14,7 @@ import express from 'express';
 import { connect } from './database';
 import bodyParser from 'body-parser';
 import { User } from './models';
+import { Business } from './businessModel'
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 
@@ -95,21 +96,107 @@ app.post('/auth', async (req: Request, res: Response) => {
 });
 
 
-app.post('/sendToken', async (req, res) => {
-    const { tokenAddress, recipientAddress, amount } = req.body;
+app.post('/registerBusiness', async (req: Request, res: Response) => {
+  const { businessName, ownerName, location, phoneNumber, password } = req.body;
 
-    if (!tokenAddress || !recipientAddress || !amount) {
-        return res.status(400).send({ message: "Required parameters are missing!" });
-    }
+  if (!businessName || !ownerName || !location || !phoneNumber || !password) {
+    return res.status(400).send({ message: "All fields are required!" });
+  }
 
-    try {
-        await sendToken(tokenAddress, recipientAddress, amount);
-        res.send({ message: 'Token sent successfully!' });
-    } catch (error) {
-        console.error("Error in API endpoint:", error);
-        res.status(500).send({ message: 'Failed to send token.', error: error });
-    }
+  // let business = await Business.findOne({ phoneNumber: phoneNumber });
+  let business;
+
+  // if (business) {
+  //   return res.status(409).send({ message: "Business with this phone number is already registered!" });
+  // }
+
+  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+  const businessSmartAccount = await createAccount();
+  const { biconomySmartAccount, pk } = businessSmartAccount;
+  const walletAddress = await biconomySmartAccount.getSmartAccountAddress();
+
+  // Generate unique 5-digit code
+  const uniqueCode = (Math.floor(Math.random() * 90000) + 10000).toString();
+
+  try {
+    business = new Business({
+      businessName,
+      ownerName,
+      location,
+      uniqueCode,
+      phoneNumber,
+      walletAddress,
+      password: hashedPassword,
+      privateKey: pk
+    });
+
+    await business.save();
+    res.send({ 
+      message: "Business registered successfully!", 
+      walletAddress: walletAddress, 
+      uniqueCode: uniqueCode
+    });
+
+  } catch (error) {
+    console.error("Error registering business:", error);
+    res.status(500).send({ message: "An error occurred while registering the business." });
+  }
 });
+
+
+app.post('/sendToken', async (req, res) => {
+  const { tokenAddress, recipientPhoneNumber, amount } = req.body;
+
+  if (!tokenAddress || !recipientPhoneNumber || !amount) {
+      return res.status(400).send({ message: "Required parameters are missing!" });
+  }
+
+  // Find user with the provided phone number
+  const user = await User.findOne({ phoneNumber: recipientPhoneNumber });
+  if (!user) {
+      return res.status(404).send({ message: "Recipient phone number not found!" });
+  }
+
+  try {
+      await sendToken(tokenAddress, user.walletAddress, amount);
+      res.send({ message: 'Token sent successfully!' });
+  } catch (error) {
+      console.error("Error in API endpoint:", error);
+      res.status(500).send({ message: 'Failed to send token.', error: error });
+  }
+});
+
+app.post('/pay', async (req: Request, res: Response) => {
+  const { tokenAddress, businessUniqueCode, amount, confirm } = req.body;
+
+  if (!tokenAddress || !businessUniqueCode || !amount) {
+      return res.status(400).send({ message: "Token address, business unique code, and amount are required!" });
+  }
+
+  // Find a business with the provided unique code
+  const business = await Business.findOne({ uniqueCode: businessUniqueCode });
+  if (!business) {
+      return res.status(404).send({ message: "Business with the provided unique code not found!" });
+  }
+//55760
+  // If the user has not confirmed the transaction
+  if (!confirm) {
+    return res.status(200).send({
+        message: "Please confirm the payment to the business.",
+        businessName: business.businessName
+    });
+  }
+
+  try {
+      await sendToken(tokenAddress, business.walletAddress, amount);
+      res.send({ message: 'Token sent successfully to the business!' });
+  } catch (error) {
+      console.error("Error in API endpoint:", error);
+      res.status(500).send({ message: 'Failed to send token.', error: error });
+  }
+});
+
+
 
 
 
@@ -146,7 +233,8 @@ connect().then(() => {
   return {biconomySmartAccount, pk};
   }
 
-
+//368785456798
+//2456789456
   async function instanceAccount(prikey: string) {
     const wallet = new Wallet(prikey, provider);
 
