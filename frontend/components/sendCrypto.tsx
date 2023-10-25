@@ -38,36 +38,113 @@ const SendCrypto = () => {
 
     
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setLoading(true);  // start the loader
+
+  //   if (!user) {
+  //     // Handle unauthenticated user scenario
+  //     console.error("User is not authenticated.");
+  //     return;
+  //   }
+
+  //   const token = localStorage.getItem('userToken');  // Replace with your token retrieval mechanism
+  //   if (!token) {
+  //     console.error("No token found.");
+  //     return;
+  //   }
+
+  //   const payload = {
+  //     senderPhoneNumber: user.phoneNumber,  
+  //     receiverPhoneNumber: recipientPhone, // Assuming recipientAddress is storing the phone number
+  //     amount: amount,  
+  //   };
+
+  //   try {
+  //     // const response = await fetch('https://afpaybackend-bokyjcxb7-nashons.vercel.app/sendXRP', {
+  //       const response = await fetch('http://localhost:8000/sendXRP', {
+
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Authorization': `Bearer ${token}`  // Added Authorization header
+  //       },
+  //       body: JSON.stringify(payload),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (response.ok) {
+  //       setLoading(false);  // stop the loader
+
+  //       // Handle success scenario
+  //       showPopup("Transaction successful!");
+  //       setAmount("")
+  //       setRecipientPhone("")
+  //       console.log("Transaction successful:", data);
+  //     } else {
+  //       console.error("Error sending crypto:", data.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error sending XRP:", error);
+  //   }
+  // }
+  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);  // start the loader
 
     if (!user) {
-      // Handle unauthenticated user scenario
       console.error("User is not authenticated.");
+      setLoading(false);
       return;
     }
 
-    const token = localStorage.getItem('userToken');  // Replace with your token retrieval mechanism
+    const token = localStorage.getItem('userToken');
     if (!token) {
       console.error("No token found.");
+      setLoading(false);
       return;
     }
 
+    // Static mapping of currency symbol to token address (you might fetch this dynamically)
+    // const tokenAddresses = {
+    //   'BTC': 'YOUR_BTC_TOKEN_ADDRESS_HERE',
+    //   'ETH': 'YOUR_ETH_TOKEN_ADDRESS_HERE'
+    // };
+    // const tokenAddresses: { [key: string]: string } = {
+    //   'USDT': '0xEE49EA567f79e280E4F1602eb8e6479d1Fb9c8C8',
+    //   'USDC': '0xEE49EA567f79e280E4F1602eb8e6479d1Fb9c8C8'
+    // };
+
+    type CurrencyType = 'USDC' | 'USDT';
+
+const tokenAddresses: Record<CurrencyType, string> = {
+  'USDC': '0xEE49EA567f79e280E4F1602eb8e6479d1Fb9c8C8',
+  'USDT': '0xEE49EA567f79e280E4F1602eb8e6479d1Fb9c8C8'
+};
+    
+    // const payload = {
+    //   tokenAddress: tokenAddresses[currency],
+    //   senderPhoneNumber: user.phoneNumber,
+    //   receiverPhoneNumber: recipientPhone,
+    //   amount: amount
+    // };
+
     const payload = {
-      senderPhoneNumber: user.phoneNumber,  
-      receiverPhoneNumber: recipientPhone, // Assuming recipientAddress is storing the phone number
+      // tokenAddress: tokenAddresses[currency as CurrencyType],
+      tokenAddress: "0xEE49EA567f79e280E4F1602eb8e6479d1Fb9c8C8",
+      recipientPhoneNumber: recipientPhone,
       amount: amount,  
     };
 
     try {
-      // const response = await fetch('https://afpaybackend-bokyjcxb7-nashons.vercel.app/sendXRP', {
-        const response = await fetch('http://localhost:8000/sendXRP', {
-
+      const response = await fetch('http://localhost:8000/sendToken', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`  // Added Authorization header
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload),
       });
@@ -75,21 +152,23 @@ const SendCrypto = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setLoading(false);  // stop the loader
-
         // Handle success scenario
         showPopup("Transaction successful!");
-        setAmount("")
-        setRecipientPhone("")
+        setAmount("");
+        setRecipientPhone("");
         console.log("Transaction successful:", data);
       } else {
+        showPopup(data.message || "Error sending crypto");
         console.error("Error sending crypto:", data.message);
       }
     } catch (error) {
-      console.error("Error sending XRP:", error);
+      showPopup("Error sending crypto");
+      console.error("Error sending crypto:", error);
+    } finally {
+      setLoading(false);  // stop the loader
     }
-  }
-  
+};
+
     return (
         <>
         {popup.visible && (
@@ -141,8 +220,8 @@ const SendCrypto = () => {
                         value={currency}
                         onChange={(e) => setCurrency(e.target.value)}
                     >
-                        <option value="BTC">XRP</option>
-                        <option value="ETH">XRPUSD</option>
+                        <option value="BTC">USDC</option>
+                        <option value="ETH">USDT</option>
                     </select>
                 </div>
             </div>

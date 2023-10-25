@@ -17,7 +17,9 @@ import { User } from './models';
 import { Business } from './businessModel'
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
-
+import jwt from 'jsonwebtoken';
+// const cors = require('cors');
+import cors from 'cors'
 // const SALT_ROUNDS = 10;
 config()
 
@@ -36,6 +38,10 @@ const provider = new providers.JsonRpcProvider("https://rpc.ankr.com/polygon_mum
 
 const app = express();
 const PORT = 8000;
+app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000' // only allow requests from this origin
+}));
 
 app.use(express.json());
 
@@ -65,7 +71,9 @@ app.post('/auth', async (req: Request, res: Response) => {
 
       let userAccount = await instanceAccount(privateKeyForUser)
        smartAccount = userAccount
-      res.send({ message: "Logged in successfully!", walletAddress: user.walletAddress });
+       const token = jwt.sign({ phoneNumber: user.phoneNumber, walletAddress: user.walletAddress }, 'zero', { expiresIn: '1h' });
+       res.send({ token, message: "Logged in successfully!", walletAddress: user.walletAddress, phoneNumber: user.phoneNumber });
+      // res.send({ message: "Logged in successfully!", walletAddress: user.walletAddress });
     } 
     // If user doesn't exist, attempt registration
     else {
