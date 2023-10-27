@@ -18,9 +18,8 @@ import { Business } from './businessModel'
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-// const cors = require('cors');
 import cors from 'cors'
-// const SALT_ROUNDS = 10;
+import fetch from "node-fetch";
 config()
 
 //initial configuration
@@ -91,7 +90,9 @@ app.post('/auth', async (req: Request, res: Response) => {
         });
         await user.save();
         smartAccount = userSmartAccount
-        res.send({ message: "Registered and logged in successfully!", walletAddress: walletAddress, pkt: pk });
+        // res.send({ message: "Registered and logged in successfully!", walletAddress: walletAddress, pkt: pk });
+        const token = jwt.sign({ phoneNumber: user.phoneNumber, walletAddress: user.walletAddress }, 'zero', { expiresIn: '1h' });
+        res.send({ token, message: "Registered successfully!", walletAddress: user.walletAddress, phoneNumber: user.phoneNumber });
       } catch (error) {
         console.error("Error registering user:", error);
         if (error === 11000) { // Handling unique constraint violation
@@ -205,6 +206,23 @@ app.post('/pay', async (req: Request, res: Response) => {
 });
 
 
+app.get('/token-transfer-events', async (req, res) => {
+  const { address } = req.query;
+
+  const apikey = '6IEU61WYVQZJ9WT2U2UYZ3TVT2V7YG7QDF'
+
+  if (!address) {
+      return res.status(400).send('Address required query parameters.');
+  }
+
+  try {
+      const events = await getAllTokenTransferEvents( address as string, apikey);
+      res.json(events);
+  } catch (error) {
+      console.error('Error fetching token transfer events:', error);
+      res.status(500).send('Internal server error.');
+  }
+});
 
 
 
@@ -327,5 +345,65 @@ try {
 //   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 // });
 
+
+interface TokenTransferEvent {
+    blockNumber: string;
+    timeStamp: string;
+    hash: string;
+    nonce: string;
+    blockHash: string;
+    from: string;
+    contractAddress: string;
+    to: string;
+    value: string;
+    tokenName: string;
+    tokenSymbol: string;
+    tokenDecimal: string;
+    transactionIndex: string;
+    gas: string;
+    gasPrice: string;
+    gasUsed: string;
+    cumulativeGasUsed: string;
+    input: string;
+    confirmations: string;
+}
+
+async function getAllTokenTransferEvents(
+    walletAddress: string,
+    apiKey: string,
+    page: number = 1,
+    offset: number = 5,
+    sort: 'asc' | 'desc' = 'asc'
+): Promise<TokenTransferEvent[]> {
+    const baseURL = 'https://api-testnet.polygonscan.com/api';
+    const url = `${baseURL}?module=account&action=tokentx&address=${walletAddress}&page=${page}&offset=${offset}&sort=${sort}&apikey=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+          throw new Error('Failed to fetch data from PolygonScan');
+      }
+      
+      const data = await response.json() as { status: string; message: string; result: TokenTransferEvent[] };
+      if (data.status !== '1') {
+          throw new Error(data.message);
+      }
+      
+      return data.result;
+      
+    } catch (error) {
+        console.error('Error fetching token transfer events:', error);
+        return [];
+    }
+}
+
+// Example usage:
+// const walletAddress = '0xe1F4615Afec6801493FB889eDe3A70812c842d05';
+// const apiKey = '6IEU61WYVQZJ9WT2U2UYZ3TVT2V7YG7QDF';
+
+// getAllTokenTransferEvents(walletAddress, apiKey).then(events => {
+//   console.log("start")
+//     console.log(events);
+// });
 
 

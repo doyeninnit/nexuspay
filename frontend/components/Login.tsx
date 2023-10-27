@@ -37,7 +37,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         console.log(data)
         if (login) {
             if (data.token) {
-                login({ token: data.token, phoneNumber });
+                login({ token: data.token, phoneNumber: data.phoneNumber, walletAddress: data.walletAddress });
             } else {
                 console.error("No token received from the server.");
             }

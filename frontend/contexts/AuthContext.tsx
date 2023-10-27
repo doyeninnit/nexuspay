@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const login = (data: User) => {
         setUser(data);
-
+        console.log(data)
         if (data.phoneNumber) {
             localStorage.setItem('userPhone', data.phoneNumber);
         }
