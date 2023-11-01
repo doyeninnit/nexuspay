@@ -24,7 +24,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         return (
             <div className="h-screen flex justify-center items-center bg-gradient-to-r from-blue-500 to-indigo-600">
                 {showLogin ? (
-                    <Login toggleView={handleToggleView} />
+                    <Login  />
                 ) : (
                     <Register toggleView={handleToggleView} />
                 )}

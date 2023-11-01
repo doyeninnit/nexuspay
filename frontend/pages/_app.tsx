@@ -32,6 +32,8 @@ import { useRouter } from 'next/router';
 import LoginSignup from '../components/LoginSignup'; 
 // import { RegistrationProvider } from '@/contexts/RegistrationContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import '../utils/fontawesome';  // Adjust the path based on where you placed the fontawesome.ts file
+import "@fortawesome/fontawesome-svg-core/styles.css";
 
 function MyApp({ Component, pageProps }: AppProps) {
   // const { isAuthenticated } = useAuth();

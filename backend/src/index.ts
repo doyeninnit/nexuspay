@@ -20,7 +20,16 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import cors from 'cors'
 import fetch from "node-fetch";
+import { PushAPI } from '@pushprotocol/restapi'
+import Binance from 'binance-api-node'
+
+
 config()
+
+const client = Binance()
+
+
+client.time().then(time => console.log(time))
 
 //initial configuration
 const bundler: IBundler = new Bundler({
@@ -225,6 +234,50 @@ app.get('/token-transfer-events', async (req, res) => {
 });
 
 
+const USDC_ADDRESS = '0xEE49EA567f79e280E4F1602eb8e6479d1Fb9c8C8'; 
+
+const usdcAbi = [ // Simplified ABI for the purposes of this example
+    {
+        "constant": true,
+        "inputs": [{"name": "_owner", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "balance", "type": "uint256"}],
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "name": "decimals",
+        "outputs": [{"name": "", "type": "uint8"}],
+        "type": "function"
+    }
+];
+
+app.get('/usdc-balance/:address', async (req, res) => {
+    try {
+        const address = req.params.address;
+        const usdcContract = new ethers.Contract(USDC_ADDRESS, usdcAbi, provider);
+
+        const balanceRaw = await usdcContract.balanceOf(address);
+        const decimals = await usdcContract.decimals();
+        const balanceInUSDC = balanceRaw.div(ethers.BigNumber.from(10).pow(decimals)).toNumber();
+
+        const conversionRate = await fetchUSDCToKESPrice();
+        const balanceInKES = balanceInUSDC * conversionRate;
+       console.log(balanceInKES)
+        res.json({
+            balanceInUSDC: balanceInUSDC,
+            balanceInKES: balanceInKES.toFixed(2),
+            rate: conversionRate
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Failed to fetch balance.');
+    }
+});
+
+
+
 
 connect().then(() => {
   app.listen(PORT, () => {
@@ -235,6 +288,8 @@ connect().then(() => {
 
 
     ///////CONTROLLERS///////
+
+
 
 
   async function createAccount() {
@@ -397,6 +452,56 @@ async function getAllTokenTransferEvents(
     }
 }
 
+
+async function getConversionRate() {
+  try {
+      const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=usd&vs_currencies=kes`);
+      const data = await response.json();
+      console.log(`in kes: ${data.usd.kes}`)
+      return data.usd.kes;
+  } catch (error) {
+      console.error("Failed to fetch conversion rate from CoinGecko:", error);
+      throw error;
+  }
+}
+
+async function getUSDCToKESRate() {
+  try {
+    // 1. Get USDC to USD rate
+    const responseUSDC = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=usd-coin&vs_currencies=usd');
+    const dataUSDC = await responseUSDC.json();
+    console.log(dataUSDC)
+    const usdcToUsdRate = dataUSDC['usd-coin'].usd;
+
+    // 2. Get USD to KES rate
+    const responseUSD = await fetch('https://api.coingecko.com/api/v3/exchange_rates');
+    console.log(responseUSD)
+    const dataUSD = await responseUSD.json();
+    const usdToKesRate = dataUSD.rates.kes.value;
+
+    // 3. Calculate USDC to KES rate
+    const usdcToKesRate = usdcToUsdRate * usdToKesRate;
+ console.log(usdToKesRate)
+    return usdcToKesRate;
+
+  } catch (error) {
+    console.error('Failed to fetch rates:', error);
+    return null;
+  }
+}
+
+
+
+
+
+// getUSDCToKESRate().then(rate => {
+//   if (rate) {
+//     console.log(`1 USDC is approximately ${rate.toFixed(2)} KES`);
+//   } else {
+//     console.log('Failed to get the conversion rate.');
+//   }
+// });
+
 // Example usage:
 // const walletAddress = '0xe1F4615Afec6801493FB889eDe3A70812c842d05';
 // const apiKey = '6IEU61WYVQZJ9WT2U2UYZ3TVT2V7YG7QDF';
@@ -407,3 +512,36 @@ async function getAllTokenTransferEvents(
 // });
 
 
+async function main(){
+  // console.log(await client.prices({symbol: 'KESUSDC'}))
+  const price = await fetchUSDCToKESPrice();
+
+console.log(price)  
+}
+//  main()
+
+async function fetchUSDCToKESPrice() {
+  // Define the API endpoint
+  const apiEndpoint = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol=USDC&convert=KES';
+
+  // Set the API key header
+  const headers = {
+    'X-CMC_PRO_API_KEY': '4d1123b4-e75c-41de-b016-0f27f577433b'
+  };
+
+  // Make a GET request to the API endpoint
+  const response = await fetch(apiEndpoint, { headers });
+
+  // Check the response status code
+  if (response.status !== 200) {
+    throw new Error(`Failed to fetch USDC to KES price: ${response.status}`);
+  }
+
+  // Parse the JSON response
+  const data = await response.json();
+
+  // Return the USDC to KES price
+  return data.data['USDC'].quote['KES'].price;
+}
+
+// main()

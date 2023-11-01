@@ -28,7 +28,7 @@ const TransactionsHistory: React.FC = () => {
 
         const response = await fetch(`http://localhost:8000/token-transfer-events?address=${user.walletAddress}`);
         const data = await response.json();
-        console.log(data)
+        // console.log(data)
         setTransactions(data);
 
       } catch (error) {
