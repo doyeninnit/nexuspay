@@ -119,79 +119,188 @@
 // export default Authenticate;
 
 // components/Authenticate.js
-import React, {useState} from "react";
-function Authenticate() {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [password, setPassword] = useState('');
-  const [isValid, setIsValid] = useState(true);
+// import React, {useState} from "react";
+// function Authenticate() {
+//   const [phoneNumber, setPhoneNumber] = useState('');
+//   const [password, setPassword] = useState('');
+//   const [isValid, setIsValid] = useState(true);
 
-  const handleConnect = () => {
-    const phonePattern = /^\+254\d{9}$/; // Matches +254 followed by 9 digits
-    if (phonePattern.test(phoneNumber) && password) {
-      console.log("Phone Number:", phoneNumber);
-      console.log("Password:", password);
-      // Here, you can proceed with authentication or any other actions
-    } else {
-      setIsValid(false);
-    }
-  }
+//   const handleConnect = () => {
+//     const phonePattern = /^\+254\d{9}$/; // Matches +254 followed by 9 digits
+//     if (phonePattern.test(phoneNumber) && password) {
+//       console.log("Phone Number:", phoneNumber);
+//       console.log("Password:", password);
+//       // Here, you can proceed with authentication or any other actions
+//     } else {
+//       setIsValid(false);
+//     }
+//   }
 
-  return (
-    <div className="bg-gradient-to-br from-purple-800 to-blue-600 min-h-screen flex flex-col justify-center items-center py-5 px-4">
+//   return (
+//     <div className="bg-gradient-to-br from-purple-800 to-blue-600 min-h-screen flex flex-col justify-center items-center py-5 px-4">
 
    
 
-    <div className="z-10">
+//     <div className="z-10">
 
-      <h1 className="text-white mb-6 text-2xl font-bold">Authenticate</h1>
+//       <h1 className="text-white mb-6 text-2xl font-bold">NEXUSPAY</h1>
 
-      {/* Phone Number Input */}
-      <div className="mb-4 w-64 flex items-center bg-white rounded-lg px-3 py-2 shadow-md">
-        <span className="text-blue-600 mr-2">🇰🇪</span>
-        <input 
-          type="tel" 
-          placeholder="+254 Phone number" 
-          className={`flex-grow bg-transparent text-gray-900 placeholder-blue-600 outline-none ${!isValid && 'border-red-500 border'}`} 
-          value={phoneNumber}
-          onChange={e => {
-            setIsValid(true);
-            setPhoneNumber(e.currentTarget.value);
-          }}
-        />
+//       {/* Phone Number Input */}
+//       <div className="mb-4 w-64 flex items-center bg-white rounded-lg px-3 py-2 shadow-md">
+//         <span className="text-blue-600 mr-2">🇰🇪</span>
+//         <input 
+//           type="tel" 
+//           placeholder="+254 Phone number" 
+//           className={`flex-grow bg-transparent text-gray-900 placeholder-blue-600 outline-none ${!isValid && 'border-red-500 border'}`} 
+//           value={phoneNumber}
+//           onChange={e => {
+//             setIsValid(true);
+//             setPhoneNumber(e.currentTarget.value);
+//           }}
+//         />
+//       </div>
+
+//       {/* Password Input */}
+//       <div className="mb-4 w-64 flex items-center bg-white rounded-lg px-3 py-2 shadow-md">
+//         <span className="text-blue-600 mr-2">🔒</span>
+//         <input 
+//           type="password" 
+//           placeholder="Password" 
+//           className="flex-grow bg-transparent text-gray-900 placeholder-blue-600 outline-none" 
+//           value={password}
+//           onChange={e => setPassword(e.currentTarget.value)}
+//         />
+//       </div>
+
+//       {!isValid && <p className="text-red-500 mb-4">Please enter a valid phone number and password.</p>}
+
+//       {/* Connect Button */}
+//       <button onClick={handleConnect} className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:from-purple-400 hover:to-blue-400 transition">
+//         Connect
+//       </button>
+
+//     </div>
+//   </div>
+// );
+// }
+
+// export default Authenticate;
+
+// components/ConnectForm.js
+import { useState } from 'react';
+
+const ConnectForm = () => {
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [pin, setPin] = useState('');
+  const [pinVisible, setPinVisible] = useState(false);
+
+  const handleSubmit = (event: { preventDefault: () => void; }) => {
+    event.preventDefault();
+    // Here you'd handle the submission of the phone number and PIN
+    console.log(`Phone Number: ${phoneNumber}, PIN: ${pin}`);
+  };
+
+  // return (
+  //   <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4">
+  //     <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
+  //       <h1 className="text-lg font-bold text-center text-primary-600 mb-4">Connect</h1>
+  //       <form onSubmit={handleSubmit} className="space-y-6">
+  //         <div>
+  //           <label htmlFor="phone-number" className="text-sm font-medium text-gray-700">Phone Number</label>
+  //           <input
+  //             type="tel"
+  //             id="phone-number"
+  //             name="phone-number"
+  //             required
+  //             placeholder="Enter your phone number"
+  //             value={phoneNumber}
+  //             onChange={(e) => setPhoneNumber(e.target.value)}
+  //             className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+  //           />
+  //         </div>
+  //         <div>
+  //           <label htmlFor="pin" className="text-sm font-medium text-gray-700">4-Digit PIN</label>
+  //           <div className="mt-1 relative">
+  //             <input
+  //               type={pinVisible ? "text" : "password"}
+  //               id="pin"
+  //               name="pin"
+  //               // maxLength="4"
+  //               pattern="\d{4}"
+  //               required
+  //               placeholder="4-digit PIN"
+  //               value={pin}
+  //               onChange={(e) => setPin(e.target.value)}
+  //               className="block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+  //             />
+  //             <button
+  //               type="button"
+  //               onClick={() => setPinVisible(!pinVisible)}
+  //               className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
+  //               {pinVisible ? 'Hide' : 'Show'}
+  //             </button>
+  //           </div>
+  //         </div>
+  //         <button
+  //           type="submit"
+  //           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+  //         >
+  //           Connect
+  //         </button>
+  //       </form>
+  //       <div className="mt-4 text-center text-sm">
+  //         <a href="#" className="font-medium text-primary-600 hover:text-primary-500">Forgot PIN?</a>
+  //       </div>
+  //       <div className="mt-2 text-center text-sm">
+  //         <a href="#" className="font-medium text-primary-600 hover:text-primary-500">New? Enter your details to sign up.</a>
+  //       </div>
+  //     </div>
+  //     <p className="mt-8 text-center text-xs text-gray-600">
+  //       By connecting, you agree to our
+  //       <a href="#" className="text-primary-600 hover:text-primary-500"> Terms and Conditions</a> and
+  //       <a href="#" className="text-primary-600 hover:text-primary-500"> Privacy Policy</a>.
+  //     </p>
+  //   </div>
+  // );
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-600 via-blue-600 to-green-500">
+      <div className="w-96 p-8 bg-purple-700 rounded-lg shadow-md">
+        <h1 className="text-white text-2xl mb-4 text-center">Connect</h1>
+        <form>
+          <div className="mb-4">
+            <label className="block text-white text-sm font-bold mb-2" htmlFor="phone-number">
+              Phone Number
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="phone-number"
+              type="tel"
+              placeholder="Your phone number"
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-white text-sm font-bold mb-2" htmlFor="pin">
+              4-Digit PIN
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+              id="pin"
+              type="password"
+              placeholder="****"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <button
+              type="submit"
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Connect
+            </button>
+          </div>
+        </form>
       </div>
-
-      {/* Password Input */}
-      <div className="mb-4 w-64 flex items-center bg-white rounded-lg px-3 py-2 shadow-md">
-        <span className="text-blue-600 mr-2">🔒</span>
-        <input 
-          type="password" 
-          placeholder="Password" 
-          className="flex-grow bg-transparent text-gray-900 placeholder-blue-600 outline-none" 
-          value={password}
-          onChange={e => setPassword(e.currentTarget.value)}
-        />
-      </div>
-
-      {!isValid && <p className="text-red-500 mb-4">Please enter a valid phone number and password.</p>}
-
-      {/* Connect Button */}
-      <button onClick={handleConnect} className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:from-purple-400 hover:to-blue-400 transition">
-        Connect
-      </button>
-
     </div>
+  );
+};
 
-     {/* Additional Designs inspired by the image */}
-     {/* <div className="flex space-x-4">
-
-        <div className="bg-white h-24 w-2 rounded-lg"></div>
-        <div className="bg-white h-16 w-2 rounded-lg"></div>
-        <div className="bg-white h-32 w-2 rounded-lg"></div>
-        <div className="bg-white h-20 w-2 rounded-lg"></div>
-        <div className="bg-white h-28 w-2 rounded-lg"></div>
-      </div> */}
-  </div>
-);
-}
-
-export default Authenticate;
+export default ConnectForm;

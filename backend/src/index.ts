@@ -26,10 +26,7 @@ import Binance from 'binance-api-node'
 
 config()
 
-const client = Binance()
 
-
-client.time().then(time => console.log(time))
 
 //initial configuration
 const bundler: IBundler = new Bundler({
@@ -43,12 +40,43 @@ const paymaster: IPaymaster = new BiconomyPaymaster({
 });
 const provider = new providers.JsonRpcProvider("https://rpc.ankr.com/polygon_mumbai")
 
+interface CacheData {
+  balanceInUSDC: any; 
+  balanceInKES: string;
+  rate: any; 
+}
+
+// In-memory cache
+const cache: {
+  lastFetch: number;
+  data: CacheData | null; // Initially, there's no data, so it's null, but it can later hold a CacheData object
+} = {
+  lastFetch: 0,
+  data: null
+};
+
+
 
 const app = express();
 const PORT = 8000;
 app.use(cors());
+// app.use(cors({
+//   origin: 'http://localhost:3000' // only allow requests from this origin
+// }));
+const allowedOrigins = ['http://localhost:3000', 'https://nexuspay.vercel.app/'];
+
 app.use(cors({
-  origin: 'http://localhost:3000' // only allow requests from this origin
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // only allow origins that are listed in the allowedOrigins array
+    if (allowedOrigins.indexOf(origin) === -1) {
+      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
 }));
 
 app.use(express.json());
@@ -81,7 +109,6 @@ app.post('/auth', async (req: Request, res: Response) => {
        smartAccount = userAccount
        const token = jwt.sign({ phoneNumber: user.phoneNumber, walletAddress: user.walletAddress }, 'zero', { expiresIn: '1h' });
        res.send({ token, message: "Logged in successfully!", walletAddress: user.walletAddress, phoneNumber: user.phoneNumber });
-      // res.send({ message: "Logged in successfully!", walletAddress: user.walletAddress });
     } 
     // If user doesn't exist, attempt registration
     else {
@@ -99,7 +126,6 @@ app.post('/auth', async (req: Request, res: Response) => {
         });
         await user.save();
         smartAccount = userSmartAccount
-        // res.send({ message: "Registered and logged in successfully!", walletAddress: walletAddress, pkt: pk });
         const token = jwt.sign({ phoneNumber: user.phoneNumber, walletAddress: user.walletAddress }, 'zero', { expiresIn: '1h' });
         res.send({ token, message: "Registered successfully!", walletAddress: user.walletAddress, phoneNumber: user.phoneNumber });
       } catch (error) {
@@ -252,30 +278,65 @@ const usdcAbi = [ // Simplified ABI for the purposes of this example
     }
 ];
 
+// app.get('/usdc-balance/:address', async (req, res) => {
+//     try {
+//         const address = req.params.address;
+//         const usdcContract = new ethers.Contract(USDC_ADDRESS, usdcAbi, provider);
+
+//         const balanceRaw = await usdcContract.balanceOf(address);
+//         const decimals = await usdcContract.decimals();
+//         const balanceInUSDC = balanceRaw.div(ethers.BigNumber.from(10).pow(decimals)).toNumber();
+
+//         const conversionRate = await fetchUSDCToKESPrice();
+//         const balanceInKES = balanceInUSDC * conversionRate;
+//        console.log(balanceInKES)
+//         res.json({
+//             balanceInUSDC: balanceInUSDC,
+//             balanceInKES: balanceInKES.toFixed(2),
+//             rate: conversionRate
+//         });
+
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).send('Failed to fetch balance.');
+//     }
+// });
 app.get('/usdc-balance/:address', async (req, res) => {
-    try {
-        const address = req.params.address;
-        const usdcContract = new ethers.Contract(USDC_ADDRESS, usdcAbi, provider);
+  const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
+  const now = Date.now();
+  
+  // If the data is cached and it was fetched less than 10 minutes ago, return the cached data
+  if (cache.data && (now - cache.lastFetch < tenMinutes)) {
+    return res.json(cache.data);
+  }
 
-        const balanceRaw = await usdcContract.balanceOf(address);
-        const decimals = await usdcContract.decimals();
-        const balanceInUSDC = balanceRaw.div(ethers.BigNumber.from(10).pow(decimals)).toNumber();
+  // If the data is not in cache or it's stale (10 minutes have passed), fetch new data
+  try {
+    const address = req.params.address;
+    const usdcContract = new ethers.Contract(USDC_ADDRESS, usdcAbi, provider);
 
-        const conversionRate = await fetchUSDCToKESPrice();
-        const balanceInKES = balanceInUSDC * conversionRate;
-       console.log(balanceInKES)
-        res.json({
-            balanceInUSDC: balanceInUSDC,
-            balanceInKES: balanceInKES.toFixed(2),
-            rate: conversionRate
-        });
+    const balanceRaw = await usdcContract.balanceOf(address);
+    const decimals = await usdcContract.decimals();
+    const balanceInUSDC = balanceRaw.div(ethers.BigNumber.from(10).pow(decimals)).toNumber();
 
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Failed to fetch balance.');
-    }
+    const conversionRate = await fetchUSDCToKESPrice();
+    const balanceInKES = balanceInUSDC * conversionRate;
+    console.log(balanceInKES);
+
+    // Update cache
+    cache.lastFetch = now;
+    cache.data = {
+      balanceInUSDC: balanceInUSDC,
+      balanceInKES: balanceInKES.toFixed(2),
+      rate: conversionRate
+    };
+
+    res.json(cache.data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Failed to fetch balance.');
+  }
 });
-
 
 
 
