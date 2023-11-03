@@ -4,9 +4,9 @@
     "display": "standalone",
     "scope": "/",
     "start_url": "/",
-    "name": "kramp",
-    "short_name": "kramp",
-    "description": "kramp app",
+    "name": "NexusPay",
+    "short_name": "NexusPay",
+    "description": "NexusPay app",
     "icons": [
         {
             "src": "/icon-192x192.png",
