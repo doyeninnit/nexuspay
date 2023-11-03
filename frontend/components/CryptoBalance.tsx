@@ -112,7 +112,7 @@ const CryptoBalance = () => {
         // Function to fetch balance from the new API
         const fetchBalance = async () => {
             try {
-                const response = await fetch(`https://afpaybackend-9gbulzneh-nashons.vercel.app/usdc-balance/${walletAddress}`);
+                const response = await fetch(`http://localhost:8000/usdc-balance/${walletAddress}`);
                 const data = await response.json();
 
                 if (data.balanceInUSDC && data.balanceInKES) {
@@ -132,7 +132,7 @@ const CryptoBalance = () => {
             return () => clearInterval(interval); // Clear the interval when component is unmounted
         }
 
-    }, [walletAddress]); // Effect will run whenever walletAddress changes
+    }, []);
 
     return (
         <div className="text-center py-12">

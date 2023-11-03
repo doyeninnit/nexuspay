@@ -17,7 +17,7 @@ const SendCrypto = () => {
   const [note, setNote] = useState('');
   const [currency, setCurrency] = useState('USDC'); // default currency
   const { user } = useAuth();  // Using the auth context to get the sender's phone number
-
+  
   const [popup, setPopup] = useState<{ visible: boolean; message: string }>({
     visible: false,
     message: ''
@@ -62,10 +62,13 @@ const SendCrypto = () => {
       tokenAddress: "0xEE49EA567f79e280E4F1602eb8e6479d1Fb9c8C8",
       recipientPhoneNumber: recipientPhone,
       amount: amount,
+      senderAddress: user.walletAddress
     };
 
     try {
-      const response = await fetch('https://afpaybackend-9gbulzneh-nashons.vercel.app/sendToken', {
+      // const response = await fetch('https://afpaybackend-echte6siv-nashons.vercel.app/sendToken', {
+        const response = await fetch('http://localhost:8000/sendToken', {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

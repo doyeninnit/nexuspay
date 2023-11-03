@@ -58,7 +58,7 @@ const PayMerchants = () => {
 
         try {
 
-            const response = await fetch('https://afpaybackend-9gbulzneh-nashons.vercel.app/pay', {
+            const response = await fetch('http://localhost:8000/pay', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -66,6 +66,7 @@ const PayMerchants = () => {
                 },
                 body: JSON.stringify({
                     tokenAddress,
+                    senderAddress: user.walletAddress,
                     businessUniqueCode: tillNumber, // Renamed tillNumber to match backend
                     amount,
                     senderPhoneNumber: user.phoneNumber,
@@ -112,7 +113,7 @@ const PayMerchants = () => {
         try {
             setLoading(true); // set loading to true before the transaction
 
-            const response = await fetch('https://afpaybackend-9gbulzneh-nashons.vercel.app/pay', {
+            const response = await fetch('http://localhost:8000/pay', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -120,6 +121,7 @@ const PayMerchants = () => {
                 },
                 body: JSON.stringify({
                     tokenAddress,
+                    senderAddress: user.walletAddress,
                     businessUniqueCode: tillNumber, // Renamed tillNumber to match backend
                     amount,
                     senderPhoneNumber: user.phoneNumber,

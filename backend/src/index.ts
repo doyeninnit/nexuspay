@@ -41,8 +41,8 @@ const paymaster: IPaymaster = new BiconomyPaymaster({
 const provider = new providers.JsonRpcProvider("https://rpc.ankr.com/polygon_mumbai")
 
 interface CacheData {
-  balanceInUSDC: any; 
-  balanceInKES: string;
+  // balanceInUSDC: any; 
+  // balanceInKES: string;
   rate: any; 
 }
 
@@ -189,9 +189,9 @@ app.post('/registerBusiness', async (req: Request, res: Response) => {
 
 
 app.post('/sendToken', async (req, res) => {
-  const { tokenAddress, recipientPhoneNumber, amount } = req.body;
+  const { tokenAddress, recipientPhoneNumber, amount, senderAddress } = req.body;
 
-  if (!tokenAddress || !recipientPhoneNumber || !amount) {
+  if (!tokenAddress || !recipientPhoneNumber || !amount || !senderAddress) {
       return res.status(400).send({ message: "Required parameters are missing!" });
   }
 
@@ -202,7 +202,7 @@ app.post('/sendToken', async (req, res) => {
   }
 
   try {
-      await sendToken(tokenAddress, user.walletAddress, amount);
+      await sendToken(tokenAddress, user.walletAddress, amount, senderAddress);
       res.send({ message: 'Token sent successfully!' });
   } catch (error) {
       console.error("Error in API endpoint:", error);
@@ -211,9 +211,9 @@ app.post('/sendToken', async (req, res) => {
 });
 
 app.post('/pay', async (req: Request, res: Response) => {
-  const { tokenAddress, businessUniqueCode, amount, confirm } = req.body;
+  const { tokenAddress, senderAddress, businessUniqueCode, amount, confirm } = req.body;
 
-  if (!tokenAddress || !businessUniqueCode || !amount) {
+  if (!tokenAddress || !businessUniqueCode || !amount || !senderAddress) {
       return res.status(400).send({ message: "Token address, business unique code, and amount are required!" });
   }
 
@@ -232,7 +232,7 @@ app.post('/pay', async (req: Request, res: Response) => {
   }
 
   try {
-      await sendToken(tokenAddress, business.walletAddress, amount);
+      await sendToken(tokenAddress, business.walletAddress, amount, senderAddress);
       res.send({ message: 'Token sent successfully to the business!' });
   } catch (error) {
       console.error("Error in API endpoint:", error);
@@ -278,65 +278,67 @@ const usdcAbi = [ // Simplified ABI for the purposes of this example
     }
 ];
 
-// app.get('/usdc-balance/:address', async (req, res) => {
-//     try {
-//         const address = req.params.address;
-//         const usdcContract = new ethers.Contract(USDC_ADDRESS, usdcAbi, provider);
-
-//         const balanceRaw = await usdcContract.balanceOf(address);
-//         const decimals = await usdcContract.decimals();
-//         const balanceInUSDC = balanceRaw.div(ethers.BigNumber.from(10).pow(decimals)).toNumber();
-
-//         const conversionRate = await fetchUSDCToKESPrice();
-//         const balanceInKES = balanceInUSDC * conversionRate;
-//        console.log(balanceInKES)
-//         res.json({
-//             balanceInUSDC: balanceInUSDC,
-//             balanceInKES: balanceInKES.toFixed(2),
-//             rate: conversionRate
-//         });
-
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).send('Failed to fetch balance.');
-//     }
-// });
 app.get('/usdc-balance/:address', async (req, res) => {
-  const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
-  const now = Date.now();
+    try {
+        const address = req.params.address;
+        const usdcContract = new ethers.Contract(USDC_ADDRESS, usdcAbi, provider);
+
+        const balanceRaw = await usdcContract.balanceOf(address);
+        const decimals = await usdcContract.decimals();
+        const balanceInUSDC = balanceRaw.div(ethers.BigNumber.from(10).pow(decimals)).toNumber();
+
+        const conversionRate = await fetchUSDCToKESPrice();
+        const balanceInKES = balanceInUSDC * conversionRate;
+       console.log(balanceInKES)
+        res.json({
+            balanceInUSDC: balanceInUSDC,
+            balanceInKES: balanceInKES.toFixed(2),
+            rate: conversionRate
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Failed to fetch balance.');
+    }
+});
+
+// app.get('/usdc-balance/:address', async (req, res) => {
+  // const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
+  // const now = Date.now();
   
-  // If the data is cached and it was fetched less than 10 minutes ago, return the cached data
-  if (cache.data && (now - cache.lastFetch < tenMinutes)) {
-    return res.json(cache.data);
-  }
+  // // If the data is cached and it was fetched less than 10 minutes ago, return the cached data
+  // if (cache.data && (now - cache.lastFetch < tenMinutes)) {
+  //   const conversionRate = cache.data.rate
+  //   // return res.json(cache.data);
+  // }
 
   // If the data is not in cache or it's stale (10 minutes have passed), fetch new data
-  try {
-    const address = req.params.address;
-    const usdcContract = new ethers.Contract(USDC_ADDRESS, usdcAbi, provider);
+//   try {
+//     const address = req.params.address;
+//     const usdcContract = new ethers.Contract(USDC_ADDRESS, usdcAbi, provider);
 
-    const balanceRaw = await usdcContract.balanceOf(address);
-    const decimals = await usdcContract.decimals();
-    const balanceInUSDC = balanceRaw.div(ethers.BigNumber.from(10).pow(decimals)).toNumber();
+//     const balanceRaw = await usdcContract.balanceOf(address);
+//     const decimals = await usdcContract.decimals();
+//     const balanceInUSDC = balanceRaw.div(ethers.BigNumber.from(10).pow(decimals)).toNumber();
 
-    const conversionRate = await fetchUSDCToKESPrice();
-    const balanceInKES = balanceInUSDC * conversionRate;
-    console.log(balanceInKES);
+//     const conversionRate = await fetchUSDCToKESPrice();
+//     const balanceInKES = balanceInUSDC * conversionRate;
+//     console.log(balanceInKES);
 
-    // Update cache
-    cache.lastFetch = now;
-    cache.data = {
-      balanceInUSDC: balanceInUSDC,
-      balanceInKES: balanceInKES.toFixed(2),
-      rate: conversionRate
-    };
+//     // Update cache
+//     cache.lastFetch = now;
+//     cache.data = {
+//       balanceInUSDC: balanceInUSDC,
+//       balanceInKES: balanceInKES.toFixed(2),
+//       rate: conversionRate
+//     };
 
-    res.json(cache.data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Failed to fetch balance.');
-  }
-});
+//     res.json(cache.data);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).send('Failed to fetch balance.');
+//   }
+// });
 
 
 
@@ -397,9 +399,9 @@ connect().then(() => {
 
 
 
-async function sendToken(tokenAddress: string, recipientAddress: string, amount: number) {
+async function sendToken(tokenAddress: string, recipientAddress: string, amount: number, senderAddress: string) {
   try {
-    let user = await User.findOne({ walletAddress: recipientAddress });
+    let user = await User.findOne({ walletAddress: senderAddress });
     
     const biconomySmartAccount = await instanceAccount(user?.privateKey as string)
     // const biconomySmartAccount = smartAccount
