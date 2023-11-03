@@ -233,7 +233,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     return;
   }
   try {
-    const response = await fetch('http://localhost:8000/auth', {
+    const response = await fetch('https://afpaybackend-9gbulzneh-nashons.vercel.app/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phoneNumber: '+254' + phoneNumber, password }),

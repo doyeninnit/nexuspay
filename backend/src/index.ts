@@ -63,7 +63,7 @@ app.use(cors());
 // app.use(cors({
 //   origin: 'http://localhost:3000' // only allow requests from this origin
 // }));
-const allowedOrigins = ['http://localhost:3000', 'https://nexuspay.vercel.app/'];
+const allowedOrigins = ['http://localhost:3000', 'https://nexuspay-812ay49ng-nashons.vercel.app/'];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -399,7 +399,13 @@ connect().then(() => {
 
 async function sendToken(tokenAddress: string, recipientAddress: string, amount: number) {
   try {
-    const biconomySmartAccount = smartAccount
+    let user = await User.findOne({ walletAddress: recipientAddress });
+    
+    const biconomySmartAccount = await instanceAccount(user?.privateKey as string)
+    // const biconomySmartAccount = smartAccount
+
+
+
     const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, provider);
     
     let decimals = 18;
