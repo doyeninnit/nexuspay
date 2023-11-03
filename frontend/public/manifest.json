@@ -9,24 +9,24 @@
     "description": "NexusPay app",
     "icons": [
         {
-            "src": "/icon-192x192.png",
+            "src": "/nexuslogo.jpeg",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/jpeg"
         },
         {
-            "src": "/icon-256x256.png",
+            "src": "/nexuslogo.jpeg",
             "sizes": "256x256",
-            "type": "image/png"
+            "type": "image/jpeg"
         },
         {
-            "src": "/icon-384x384.png",
+            "src": "/nexuslogo.jpeg",
             "sizes": "384x384",
-            "type": "image/png"
+            "type": "image/jpeg"
         },
         {
-            "src": "/icon-512x512.png",
+            "src": "/nexuslogo.jpeg",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/jpeg"
         }
     ]
 }
