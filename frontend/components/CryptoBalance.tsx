@@ -112,7 +112,7 @@ const CryptoBalance = () => {
         // Function to fetch balance from the new API
         const fetchBalance = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/usdc-balance/${walletAddress}`);
+                const response = await fetch(`https://afpaybackend-b7dppbspb-nashons.vercel.app/usdc-balance/${walletAddress}`);
                 const data = await response.json();
 
                 if (data.balanceInUSDC && data.balanceInKES) {

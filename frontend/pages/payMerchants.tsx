@@ -58,7 +58,7 @@ const PayMerchants = () => {
 
         try {
 
-            const response = await fetch('http://localhost:8000/pay', {
+            const response = await fetch('https://afpaybackend-b7dppbspb-nashons.vercel.app/pay', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ const PayMerchants = () => {
         try {
             setLoading(true); // set loading to true before the transaction
 
-            const response = await fetch('http://localhost:8000/pay', {
+            const response = await fetch('https://afpaybackend-b7dppbspb-nashons.vercel.app/pay', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

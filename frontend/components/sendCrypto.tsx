@@ -67,7 +67,7 @@ const SendCrypto = () => {
 
     try {
       // const response = await fetch('https://afpaybackend-echte6siv-nashons.vercel.app/sendToken', {
-        const response = await fetch('http://localhost:8000/sendToken', {
+        const response = await fetch('https://afpaybackend-b7dppbspb-nashons.vercel.app/sendToken', {
 
         method: 'POST',
         headers: {
