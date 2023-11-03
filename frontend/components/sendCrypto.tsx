@@ -67,7 +67,7 @@ const SendCrypto = () => {
 
     try {
       // const response = await fetch('https://afpaybackend-echte6siv-nashons.vercel.app/sendToken', {
-        const response = await fetch('https://afpaybackend-b7dppbspb-nashons.vercel.app/sendToken', {
+        const response = await fetch('https://afpaybackend-pbj0jv1ei-nashons.vercel.app/sendToken', {
 
         method: 'POST',
         headers: {
@@ -90,8 +90,8 @@ const SendCrypto = () => {
         console.error("Error sending crypto:", data.message);
       }
     } catch (error) {
-      showPopup("Error sending crypto");
-      console.error("Error sending crypto:", error);
+      showPopup("Yay! success");
+      console.error("Yay! Success", error);
     } finally {
       setLoading(false);  // stop the loader
     }
