@@ -580,7 +580,7 @@ async function fetchUSDCToKESPrice() {
 
   // Set the API key header
   const headers = {
-    'X-CMC_PRO_API_KEY': '4d1123b4-e75c-41de-b016-0f27f577433b'
+    'X-CMC_PRO_API_KEY': '7e75c059-0ffc-41ca-ae72-88df27e0f202'
   };
 
   // Make a GET request to the API endpoint
