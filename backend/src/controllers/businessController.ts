@@ -4,13 +4,11 @@ import { Business } from '../models/businessModel';
 
 //take this createAccount to utils or services instead of using it from auth
 import { createAccount } from './authController';
-// Include other imports necessary for the business logic
 
 const SALT_ROUNDS = 10; // Consider storing this in environment variables
 
 export const registerBusiness = async (req: Request, res: Response) => {
-  // The existing logic from your index.ts for the /registerBusiness route
-  // ...
+
   const { businessName, ownerName, location, phoneNumber, password } = req.body;
 
   if (!businessName || !ownerName || !location || !phoneNumber || !password) {
@@ -54,5 +52,3 @@ export const registerBusiness = async (req: Request, res: Response) => {
   }
 };
 
-// Include any other functions from index.ts that are related to business operations
-// ...

@@ -159,6 +159,7 @@ uniqueCode`: String (unique)
   - `/controllers`: Contains logic for handling API requests.
   - `/models`: Database schema definitions.
   - `/routes`: API endpoint definitions.
+  - `/utils`: Helper functions and shared business logic.
   - `index.ts`: Application entry point.
 - `package.json`: Project metadata and dependencies.
 

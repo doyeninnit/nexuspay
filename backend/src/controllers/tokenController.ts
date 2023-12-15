@@ -7,13 +7,10 @@ import { ERC20ABI } from '../../abi';
 import { instanceAccount } from './authController';
 import fetch from "node-fetch";
 
-// Include other necessary imports
-
 const provider = new providers.JsonRpcProvider("https://rpc.ankr.com/polygon_mumbai")
 
 export const send = async (req: Request, res: Response) => {
-  // The existing logic from your index.ts for the /sendToken route
-  // ...
+
   const { tokenAddress, recipientPhoneNumber, amount, senderAddress } = req.body;
 
   if (!tokenAddress || !recipientPhoneNumber || !amount || !senderAddress) {
@@ -36,8 +33,7 @@ export const send = async (req: Request, res: Response) => {
 };
 
 export const pay = async (req: Request, res: Response) => {
-  // The existing logic from your index.ts for the /pay route
-  // ...
+ 
   const { tokenAddress, senderAddress, businessUniqueCode, amount, confirm } = req.body;
 
   if (!tokenAddress || !businessUniqueCode || !amount || !senderAddress) {
@@ -49,7 +45,7 @@ export const pay = async (req: Request, res: Response) => {
   if (!business) {
       return res.status(404).send({ message: "Business with the provided unique code not found!" });
   }
-//55760
+
   // If the user has not confirmed the transaction
   if (!confirm) {
     return res.status(200).send({
@@ -68,8 +64,7 @@ export const pay = async (req: Request, res: Response) => {
 };
 
 export const tokenTransferEvents = async (req: Request, res: Response) => {
-  // The existing logic from your index.ts for the /token-transfer-events route
-  // ...
+ 
   const { address } = req.query;
 
   const apikey = '6IEU61WYVQZJ9WT2U2UYZ3TVT2V7YG7QDF'

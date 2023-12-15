@@ -1,21 +1,3 @@
-// import { MongoClient } from 'mongodb';
-
-// const MONGO_URL = "mongodb+srv://agatenashons:nashtech9021@afpay.cnz3ecn.mongodb.net/?retryWrites=true&w=majority"
-// const DB_NAME = 'afpay';
-
-// let db: any;
-
-// export async function connect() {
-//     const client = new MongoClient(MONGO_URL);
-    
-    
-//       await client.connect();
-//   db = client.db(DB_NAME);
-// }
-
-// export function getDatabase() {
-//   return db;
-// }
 
 import mongoose from 'mongoose';
 

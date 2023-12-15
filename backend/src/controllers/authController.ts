@@ -2,13 +2,10 @@ import { config } from "dotenv"
 import { IBundler, Bundler } from '@biconomy/bundler'
 import { ChainId } from "@biconomy/core-types"
 import { BiconomySmartAccount, BiconomySmartAccountConfig, DEFAULT_ENTRYPOINT_ADDRESS } from "@biconomy/account"
-import { Wallet, providers, ethers } from 'ethers';
+import { Wallet, providers } from 'ethers';
 import {
   IPaymaster,
   BiconomyPaymaster,
-  IHybridPaymaster,
-  PaymasterMode,
-  SponsorUserOperationDto,
 } from "@biconomy/paymaster";
 // const { ERC20ABI } = require('../abi')
 import { User } from '../models/models';
@@ -31,8 +28,6 @@ const provider = new providers.JsonRpcProvider("https://rpc.ankr.com/polygon_mum
 
 const SALT_ROUNDS = 10; // Consider storing this in environment variables
 
-// Include any additional functions and interfaces used by the controller
-// ...
 
 export const authenticateUser = async (req: Request, res: Response) => {
   const { phoneNumber, password } = req.body;
@@ -41,8 +36,6 @@ export const authenticateUser = async (req: Request, res: Response) => {
     return res.status(400).send({ message: "Phone number and password are required!" });
   }
 
-  // The existing logic from your index.ts for the /auth route
-  // ...
   
   let user = await User.findOne({ phoneNumber: phoneNumber });
   // If user exists, attempt login
@@ -86,9 +79,6 @@ export const authenticateUser = async (req: Request, res: Response) => {
     }
   }
 };
-
-// Include any other functions from index.ts that are related to authentication
-// ...
 
 
 export async function createAccount() {
