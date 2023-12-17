@@ -2,12 +2,11 @@ import { Request, Response } from 'express';
 import { User } from '../models/models';
 import { Business } from '../models/businessModel';
 import { IHybridPaymaster, PaymasterMode, SponsorUserOperationDto } from '@biconomy/paymaster';
-import { ethers, providers } from 'ethers';
-import { ERC20ABI } from '../../abi';
+import { ethers } from 'ethers';
 import { instanceAccount } from './authController';
 import fetch from "node-fetch";
+import {tokenContract } from '../config/constants';
 
-const provider = new providers.JsonRpcProvider("https://rpc.ankr.com/polygon_mumbai")
 
 export const send = async (req: Request, res: Response) => {
 
@@ -135,23 +134,18 @@ async function getAllTokenTransferEvents(
 
 
 
-// Include any additional functions and interfaces used by the controller
-// ...
-
-
-
-
 
 async function sendToken(tokenAddress: string, recipientAddress: string, amount: number, senderAddress: string) {
     try {
       let user = await User.findOne({ walletAddress: senderAddress });
-      
+      console.log("Private Key:", user);
+
       const biconomySmartAccount = await instanceAccount(user?.privateKey as string)
       // const biconomySmartAccount = smartAccount
   
   
-  
-      const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, provider);
+  ///Store this token contract as a global variable, doesn't have to be initialized everytime
+    //   const tokenContract = new ethers.Contract(tokenAddress, ERC20ABI, provider);
       
       let decimals = 18;
       try {

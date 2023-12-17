@@ -31,7 +31,6 @@ const SALT_ROUNDS = 10; // Consider storing this in environment variables
 
 export const authenticateUser = async (req: Request, res: Response) => {
   const { phoneNumber, password } = req.body;
-   console.log("hit")
   if (!phoneNumber || !password) {
     return res.status(400).send({ message: "Phone number and password are required!" });
   }
