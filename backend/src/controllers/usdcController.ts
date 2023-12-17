@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { ethers, providers } from 'ethers';
+import { provider, tokenAddress } from '../config/constants';
 
-const USDC_ADDRESS = '0xEE49EA567f79e280E4F1602eb8e6479d1Fb9c8C8'; 
 
-const usdcAbi = [ // Simplified ABI for the purposes of this example
+const usdcAbi = [ 
     {
         "constant": true,
         "inputs": [{"name": "_owner", "type": "address"}],
@@ -19,14 +19,12 @@ const usdcAbi = [ // Simplified ABI for the purposes of this example
     }
 ];
 
-const provider = new providers.JsonRpcProvider("https://rpc.ankr.com/polygon_mumbai");
 
 export const getUsdcBalance = async (req: Request, res: Response) => {
-  // Your existing '/usdc-balance/:address' route logic
-  // ...
+ 
   try {
     const address = req.params.address;
-    const usdcContract = new ethers.Contract(USDC_ADDRESS, usdcAbi, provider);
+    const usdcContract = new ethers.Contract(tokenAddress, usdcAbi, provider);
 
     const balanceRaw = await usdcContract.balanceOf(address);
     const decimals = await usdcContract.decimals();
