@@ -1,30 +1,65 @@
 
 import express from 'express';
-import bodyParser from 'body-parser';
 import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import bodyParser from 'body-parser';
+
+import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+
 import authRoutes from './routes/authRoutes';
 import businessRoutes from './routes/businessRoutes';
 import tokenRoutes from './routes/tokenRoutes';
 import usdcRoutes from './routes/usdcRoutes';
-import {connect } from './config/database'
+import { connect } from './config/database';
 
 const app = express();
 const PORT = 8000;
 
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.json());
+// Security middlewares
+app.use(helmet());
 
+// CORS middleware for allowing cross-origin requests
+app.use(cors());
+
+// Body parser middlewares
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Compression middleware to compress response bodies
+app.use(compression());
+
+// Morgan middleware for logging HTTP requests
+app.use(morgan('dev'));
+
+// Rate Limiting to prevent brute force attacks
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // Limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+
+// Route middlewares
 app.use('/api/auth', authRoutes);
 app.use('/api/business', businessRoutes);
 app.use('/api/token', tokenRoutes);
-app.use('/api/usdc', usdcRoutes); 
+app.use('/api/usdc', usdcRoutes);
 
-
-
+// Database connection
 connect().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 });
 
+
+// Global error handling middleware
+const errorHandler: ErrorRequestHandler = (err, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).send({ message: 'Internal Server Error' });
+};
+
+app.use(errorHandler);
