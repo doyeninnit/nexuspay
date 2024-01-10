@@ -37,7 +37,7 @@ const TransactionsHistory: React.FC<TransactionsHistoryProps> = () => {
           throw new Error("Wallet address not available");
         }
 
-        const response = await fetch(`https://afpaybackend-bokyjcxb7-nashons.vercel.app/account_tx/${user.walletAddress}`);
+        const response = await fetch(`http://localhost:8000/account_tx/${user.walletAddress}`);
         const data = await response.json();
         console.log(data)
         // if (data.status === 'success') {
