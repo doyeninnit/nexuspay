@@ -54,7 +54,9 @@ const TransactionsHistory: React.FC = () => {
           <li key={tx.hash} className="border-t border-gray-600 py-4 flex justify-between">
             <span>
               {/* {`${tx.from === user?.walletAddress ? 'Sent' : 'Received'}  */}
-              {`${tx.from ===  user?.walletAddress ? 'Sent' : 'Received'} ${tx.tokenSymbol || 'ETH'}`}
+              {/* {`${tx.from ===  user?.walletAddress ? 'Sent' : 'Received'} ${tx.tokenSymbol || 'ETH'}`} */}
+              {`${tx.from ===  user?.walletAddress ? 'Sent' : 'Received'} ${'XRPUSD'}`}
+
 </span>
             <span>
               {/* {`${tx.from === user?.walletAddress ? '-' : '+'}  */}

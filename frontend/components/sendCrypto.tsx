@@ -148,8 +148,8 @@ const SendCrypto = () => {
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
             >
-              <option value="BTC">USDC</option>
-              <option value="ETH">USDT</option>
+              <option value="BTC">XRPUSD</option>
+              <option value="ETH">XRP</option>
             </select>
           </div>
         </div>
