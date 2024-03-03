@@ -2,28 +2,13 @@ import { config } from "dotenv"
 import { ChainId } from "@biconomy/core-types"
 import { BiconomySmartAccount, BiconomySmartAccountConfig, DEFAULT_ENTRYPOINT_ADDRESS } from "@biconomy/account"
 import { Wallet, providers } from 'ethers';
-// const { ERC20ABI } = require('../abi')
 import { User } from '../models/models';
 import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { bundler, paymaster, provider } from "../config/constants";
 
-// Place your existing config and bundler setup here
-// const bundler: IBundler = new Bundler({
-//   bundlerUrl: 'https://bundler.biconomy.io/api/v2/80001/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44',     
-//   chainId: ChainId.POLYGON_MUMBAI,
-//   entryPointAddress: DEFAULT_ENTRYPOINT_ADDRESS,
-// });
-
-// const paymaster: IPaymaster = new BiconomyPaymaster({
-//   paymasterUrl: "https://paymaster.biconomy.io/api/v1/80001/HaTCCk72C.3dec203b-4396-4337-b40a-8ac1ab0cb0ea",
-// });
-
-// const provider = new providers.JsonRpcProvider("https://rpc.ankr.com/polygon_mumbai");
-
-const SALT_ROUNDS = 10; // Consider storing this in environment variables
-
+const SALT_ROUNDS = 10; 
 
 export const loginUser = async (req: Request, res: Response) => {
   const { phoneNumber, password } = req.body;
@@ -86,8 +71,7 @@ export async function createAccount() {
     const newWallet = Wallet.createRandom();
     const pk = newWallet.privateKey
     const wallet = new Wallet(pk, provider);
-    // let smartAccount: BiconomySmartAccount;
-    //smart account config
+  
     const biconomySmartAccountConfig: BiconomySmartAccountConfig = {
       signer: wallet,
       chainId: ChainId.POLYGON_MUMBAI,
