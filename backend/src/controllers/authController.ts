@@ -50,7 +50,7 @@ export const initiateRegisterUser = async (req: Request, res: Response) => {
     await africastalking.SMS.send({
       to: phoneNumber,
       message: `Your verification code is: ${otp}`,
-      from: 'YourBrand'
+      from: 'NEXUSPAY'
     });
     return res.send({ message: "OTP sent successfully. Please verify to complete registration." });
   } catch (error) {
